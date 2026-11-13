@@ -316,10 +316,15 @@ const zones = [
             Share your code from the app with a fellow boater. When their first confirmed delivery is complete, you each get a $25 fuel credit.
             New Blackfin customers only.
           </p>
+          <ol class="refer__steps" role="list">
+            <li><span class="numeral">1</span>Download the app</li>
+            <li><span class="numeral">2</span>Share your referral code</li>
+            <li><span class="numeral">3</span>You both get $25</li>
+          </ol>
           <Button data-open-app-promo size="lg">Claim your $25</Button>
         </div>
         <div class="refer__phone" data-float>
-          <PhoneFrame src={screenReferral} alt="App referral screen: Give $25, Get $25 with a shareable code" width="12.5rem" crop="top" />
+          <PhoneFrame src={screenReferral} alt="App referral screen: Give $25, Get $25 with a shareable code" width="clamp(11rem, 9rem + 6vw, 15rem)" crop="top" />
         </div>
       </div>
     </div>
@@ -1052,9 +1057,10 @@ const zones = [
   .refer {
     position: relative;
     display: grid;
-    gap: 2rem;
-    margin-top: clamp(4rem, 3rem + 4vw, 7rem);
-    padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    gap: 1.5rem;
+    max-width: 62rem;
+    margin: clamp(2.5rem, 2rem + 2vw, 4rem) auto 0;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
     overflow: hidden;
     background:
       radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.4), transparent 60%),
@@ -1068,19 +1074,53 @@ const zones = [
     .refer {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
+      gap: clamp(1.5rem, 1rem + 2vw, 3rem);
       padding-bottom: 0;
     }
     .refer__copy {
-      padding-bottom: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+      padding-bottom: clamp(1.5rem, 1rem + 2vw, 2.75rem);
     }
   }
 
   .refer__copy > :global(* + *) {
-    margin-top: 1rem;
+    margin-top: 0.8rem;
+  }
+
+  .refer__steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .refer__steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem 0.4rem 0.4rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--text);
+    background: rgb(4 11 18 / 0.35);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+  }
+
+  .refer__steps .numeral {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: 0.95rem;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
   }
 
   .refer__amount {
-    font-size: clamp(3.28rem, 1.5rem + 5.44vw, 5.6rem);
+    font-size: clamp(2.8rem, 1.6rem + 3.6vw, 4.4rem);
     line-height: 0.85;
     color: var(--white);
   }
@@ -1102,12 +1142,13 @@ const zones = [
 
   .refer__phone {
     justify-self: center;
-    margin-bottom: -4rem;
+    margin-bottom: -3rem;
   }
 
   @media (min-width: 48em) {
     .refer__phone {
-      margin-bottom: -3rem;
+      margin-right: clamp(0rem, 2vw, 2rem);
+      margin-bottom: -2.5rem;
     }
   }
 
