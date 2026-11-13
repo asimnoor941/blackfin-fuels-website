@@ -2,12 +2,17 @@
 
 Rebuild of [blackfinfuels.com](https://blackfinfuels.com/) as a 3D, scroll-driven site.
 
-**Status:** first full build. All 17 live pages rebuilt in Astro with a 3D scroll journey on the home page and an app referral pop-up. Not deployed.
+**Preview:** https://asimnoor941.github.io/blackfin-fuels-website/ (demo build: sample price, booking requests are not sent). Every push to `main` republishes it automatically (`.github/workflows/pages.yml`, about 1 to 2 minutes).
+
+**Status:** all pages rebuilt in Astro. Live price and booking need the CRM/hub endpoints before going live on blackfinfuels.com.
+
+The `reference/` mirror of the old site is kept locally only (third-party content, stock images of unknown licence) and is not in this repo.
 
 ```
 npm install
 npm run dev       # http://localhost:4321
 npm run build     # static site in dist/
+npm run build:demo  # demo build: sample price, orders not sent, noindex
 ```
 
 ## Start here
