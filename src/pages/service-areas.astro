@@ -1,0 +1,836 @@
+---
+/**
+ * Service Areas. Same editorial language as the home page: big Anton
+ * headlines, hairline-ruled number rows, dark section rhythm.
+ *
+ * Scroll-driven 3D (src/scripts/motion.ts), nothing moves on load:
+ *   - the route map card stands up from the table (data-3d="table")
+ *   - the route line draws itself north to south (data-3d="draw")
+ *   - each explainer photo swings in from alternating sides (data-3d="swing")
+ *   - the FAQ list hinges up item by item (added by autoAssign3D)
+ * The hero is static, so nothing visible at load depends on motion.
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Button from '../components/Button.astro';
+import Faq from '../components/Faq.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import Contours from '../components/Contours.astro';
+import type { IconName } from '../components/Icon.astro';
+import RouteMap from '../components/areas/RouteMap.astro';
+import ZoneLedger from '../components/areas/ZoneLedger.astro';
+import type { Zone } from '../components/areas/ZoneLedger.astro';
+import { contact, ORDER_URL } from '../data/site';
+
+import dockWalk from '../assets/photos/dock-hose-walk.jpg';
+import driverTruck from '../assets/photos/driver-hose-truck.jpg';
+import boatLift from '../assets/photos/fueling-boat-lift.jpg';
+import nozzle from '../assets/photos/nozzle-closeup.jpg';
+import hoseReel from '../assets/photos/hose-reel-detail.jpg';
+
+const order = { label: 'Order Fuel', href: ORDER_URL };
+
+// North to south. Wording from the live page.
+const zones: Zone[] = [
+  {
+    id: 'bradenton',
+    name: 'Bradenton',
+    schedule: 'Weekly Service',
+    minimum: '100 Gal Min',
+    text: 'Serving private docks, boat lifts, and marinas along the Manatee River and Bradenton waterfront. We route through Palmetto and Snead Island.',
+    tags: ['Manatee River', 'Private Docks'],
+    links: [{ label: 'View Bradenton', href: '/bradenton/' }],
+  },
+  {
+    id: 'sarasota',
+    name: 'Sarasota',
+    schedule: 'Weekly Service',
+    minimum: '100 Gal Min',
+    text: 'Sarasota Bay, Siesta Key, Bird Key, and Longboat Key access. We service private residential docks and HOA marina facilities throughout the area.',
+    tags: ['Siesta Key', 'Longboat Key'],
+    links: [{ label: 'View Sarasota', href: '/sarasota/' }],
+  },
+  {
+    id: 'venice',
+    name: 'Venice',
+    schedule: 'Weekly Service',
+    minimum: '100 Gal Min',
+    text: 'Venice Inlet, Intracoastal Waterway access through Venice. Serving Nokomis, Osprey, and the South Venice waterfront corridor.',
+    tags: ['Venice Inlet', 'Nokomis / Osprey'],
+    links: [order],
+  },
+  {
+    id: 'englewood-port-charlotte',
+    name: 'Englewood & Port Charlotte',
+    schedule: 'Weekly Service',
+    minimum: '100 Gal Min',
+    text: 'Charlotte Harbor, Lemon Bay, and the Englewood waterfront. Rotonda West, Cape Haze Peninsula, and Bull Bay canal communities included.',
+    tags: ['Charlotte Harbor', 'Lemon Bay'],
+    links: [order],
+  },
+  {
+    id: 'punta-gorda',
+    name: 'Punta Gorda',
+    schedule: 'Multiple Times / Week',
+    minimum: '100 Gal Min',
+    text: 'Peace River access, Punta Gorda Isles canal system, and Charlotte Harbor Yacht Club. Commercial and residential dock delivery.',
+    tags: ['PG Isles Canals', 'Peace River'],
+    links: [{ label: 'View Punta Gorda', href: '/punta-gorda/' }],
+    frequent: true,
+  },
+  {
+    id: 'fort-myers-cape-coral',
+    name: 'Fort Myers & Cape Coral',
+    schedule: 'Multiple Times / Week',
+    minimum: '75 Gal Min',
+    text: 'Fort Myers’s vast canal network, Cape Coral’s 400+ miles of canals, and Caloosahatchee River access. Lowest minimum in our service area.',
+    tags: ['Cape Coral Canals', 'Caloosahatchee', 'Sanibel / Estero'],
+    links: [
+      { label: 'View Fort Myers', href: '/fort-myers/' },
+      { label: 'View Cape Coral', href: '/cape-coral/' },
+    ],
+    frequent: true,
+  },
+];
+
+const explainers = [
+  {
+    title: 'Scheduled Route Days',
+    text: 'You’ll know in advance when we’re in your area, making it easy to plan your week on the water. Request a delivery and we’ll confirm your scheduled window.',
+    photo: driverTruck,
+    alt: 'Blackfin Fuels driver pulling the green fuel hose from the side of the delivery truck',
+    position: '50% 40%',
+  },
+  {
+    title: 'Dock-to-Dock Delivery',
+    text: 'Our trucks carry up to 350 feet of hose reach, enough to get fuel to your vessel even if you’re in a tight canal slip or behind a seawall. We deliver to private docks, boat lifts, marina slips, and commercial operations.',
+    photo: boatLift,
+    alt: 'Blackfin Fuels driver fueling a boat on a lift at a canal-side dock',
+    position: '60% 50%',
+  },
+  {
+    title: 'Rec 90 Only, No Ethanol',
+    text: 'We exclusively carry Rec 90, the ethanol-free premium gasoline recommended for most marine engines. No diesel at this time. If you’re unsure if Rec 90 is right for your engine, text us before ordering.',
+    photo: nozzle,
+    alt: 'Red fuel nozzle in a boat’s fuel fill, wrapped with an absorbent pad',
+    position: '45% 60%',
+  },
+  {
+    title: 'Billing After Delivery',
+    text: 'You don’t pay upfront. After delivery, we send an invoice via email or text. Most customers pay by card or ACH within 24 hours. Commercial accounts and marinas can arrange net billing terms.',
+    photo: hoseReel,
+    alt: 'Hose reel and green fuel hose at the back of a Blackfin Fuels truck showing the phone number (941) 724-0453',
+    position: '50% 50%',
+  },
+];
+
+const assurances: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'shield-check',
+    title: 'Commercially Insured',
+    text: 'Fully insured and spill-compliant. Certificate of Insurance available upon request for marinas and HOAs.',
+  },
+  {
+    icon: 'truck',
+    title: 'Licensed & Compliant',
+    text: 'Permitted fuel hauler operating in compliance with Florida DEP and DOT regulations for marine fuel transport.',
+  },
+  {
+    icon: 'calendar',
+    title: 'Predictable Scheduling',
+    text: 'Fixed weekly routes mean you always know when to expect us. No waiting around.',
+  },
+  {
+    icon: 'route',
+    title: '350 ft Hose Reach',
+    text: 'Our primary truck carries 350 feet of hose, enough to reach nearly any dock configuration.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'Do you deliver to my area?',
+    a: 'We cover the Gulf Coast from Bradenton to Cape Coral in two zones. Check the map above or text us your address and we’ll confirm.',
+  },
+  {
+    q: 'What’s the minimum gallon order?',
+    a: '75 gallon minimum in Cape Coral and Punta Gorda; 100 gallon minimum everywhere else.',
+  },
+  {
+    q: 'Do you carry diesel?',
+    a: 'Not at this time. We exclusively carry Rec 90, ethanol-free premium gasoline.',
+  },
+  {
+    q: 'How do I pay?',
+    a: 'We invoice after delivery via email or text. Most customers pay by card or ACH within 24 hours.',
+  },
+  {
+    q: 'Do you service HOAs or marinas?',
+    a: 'Yes. Commercial accounts and bulk fueling partnerships are welcome. Contact us for commercial pricing.',
+  },
+  {
+    q: 'How often will I see a truck on my route?',
+    a: 'Most Primary Zone customers see service 1 to 3 times per week; Fort Myers Zone customers see multiple deliveries per week.',
+  },
+];
+---
+
+<BaseLayout
+  title="Service Areas: Dock Fuel Delivery, Bradenton to Cape Coral"
+  description="Marine fuel delivery across Southwest Florida's Gulf Coast, from Bradenton to Cape Coral. See every delivery zone, schedule and minimum before you request."
+  breadcrumbs={[{ name: 'Service Areas', href: '/service-areas/' }]}
+>
+  <!-- ============ HERO (static: nothing here moves) ============ -->
+  <section class="sa-hero">
+    <Contours class="sa-hero__lines" lines={20} />
+    <div class="container">
+      <p class="eyebrow">Coverage Map</p>
+      <h1 class="sa-hero__title">
+        <span>We Come to</span>
+        <span class="sa-hero__accent">Your Dock</span>
+      </h1>
+      <div class="sa-hero__row">
+        <p class="lede">
+          Marine fuel delivery across Southwest Florida’s Gulf Coast, from Bradenton to Cape Coral. Scheduled routes, no marina lines.
+        </p>
+        <div class="cluster">
+          <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+          <Button href="#coverage" variant="ghost" size="lg" arrow={false}>Coverage Zones</Button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="sa-hero__media">
+        <div class="sa-hero__photo">
+          <Picture
+            src={dockWalk}
+            alt="Blackfin Fuels driver carrying the fuel hose down a wooden dock toward boats on covered lifts"
+            formats={['avif', 'webp']}
+            widths={[640, 960, 1280, 1920, 2560]}
+            sizes="(min-width: 80em) 77.5rem, 94vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <dl class="sa-hero__facts">
+          <div><dt>Cities Served</dt><dd class="numeral">Multiple</dd></div>
+          <div><dt>Miles of Coastline</dt><dd class="numeral">150<small>+</small></dd></div>
+          <div><dt>Bradenton to Cape Coral</dt><dd class="numeral">N<span aria-hidden="true">&rarr;</span>S</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OUR SERVICE AREA: sticky copy beside the route map ============ -->
+  <section class="band band--abyss" id="coverage">
+    <div class="container coverage">
+      <div class="coverage__copy">
+        <div class="coverage__intro" data-reveal>
+          <p class="eyebrow">Coverage Zones</p>
+          <h2 id="coverage-title">Our Service Area</h2>
+          <p class="lede">
+            Two delivery zones cover the length of Southwest Florida's Gulf Coast. Select your area below to see schedule and minimums.
+          </p>
+        </div>
+
+        <div class="fuel" data-reveal>
+          <h3 class="fuel__title">Fuel Type</h3>
+          <ul class="fuel__rows" role="list">
+            <li><span class="fuel__key numeral">Rec 90</span><span>Ethanol-free premium</span></li>
+            <li><span class="fuel__key"><Icon name="drop" size={20} /></span><span>Delivered to your dock, lift, or slip</span></li>
+            <li><span class="fuel__key"><Icon name="card" size={20} /></span><span>Invoice sent after delivery</span></li>
+          </ul>
+        </div>
+
+        <div class="ask" data-reveal>
+          <p>Not sure if we serve your specific dock or marina? Text us your address.</p>
+          <div class="cluster">
+            <Button href={ORDER_URL}>Order Fuel</Button>
+            <Button href={contact.smsHref} variant="ghost" icon="message" arrow={false}>Text Us Your Location</Button>
+          </div>
+        </div>
+      </div>
+
+      <div class="coverage__map">
+        <RouteMap zones={zones} />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DELIVERY BY LOCATION ============ -->
+  <section class="band band--raised" id="locations">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">City Guide</p>
+          <h2>Delivery by Location</h2>
+        </div>
+        <p class="lede" data-reveal>
+          Every delivery zone, schedule, and minimum, so you know exactly what to expect before you request.
+        </p>
+      </header>
+      <ZoneLedger zones={zones} />
+    </div>
+  </section>
+
+  <!-- ============ HOW SERVICE WORKS: photos swing in from alternating sides ============ -->
+  <section class="band" id="how-service-works">
+    <div class="container">
+      <header class="head">
+        <div data-reveal>
+          <p class="eyebrow">On Your Route</p>
+          <h2>How Service Works</h2>
+        </div>
+      </header>
+
+      <div class="explainers">
+        {
+          explainers.map((item, i) => (
+            <article class:list={['explainer', { 'explainer--flip': i % 2 === 1 }]}>
+              <div class="explainer__stage">
+                <span class="explainer__index numeral" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div class="explainer__photo" data-3d="swing" data-3d-from={i % 2 === 1 ? undefined : 'left'} data-3d-strength="0.7">
+                  <Photo
+                    src={item.photo}
+                    alt={item.alt}
+                    ratio="4 / 3"
+                    position={item.position}
+                    reveal={false}
+                    sizes="(min-width: 60em) 56vw, 92vw"
+                  />
+                </div>
+              </div>
+              <div class="explainer__text" data-reveal>
+                <p class="explainer__step">
+                  <span class="numeral">{String(i + 1).padStart(2, '0')}</span> / 04
+                </p>
+                <h3 class="explainer__title">{item.title}</h3>
+                <p class="explainer__body">{item.text}</p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ASSURANCES ============ -->
+  <section class="band band--abyss band--tight" aria-labelledby="assurance-title">
+    <div class="container">
+      <h2 class="visually-hidden" id="assurance-title">Insured, licensed and on schedule</h2>
+      <ul class="assurances" role="list" data-reveal-group>
+        {
+          assurances.map((item, i) => (
+            <li class="assurance" data-reveal>
+              <div class="assurance__top">
+                <span class="assurance__num numeral" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <span class="assurance__icon">
+                  <Icon name={item.icon} size={22} />
+                </span>
+              </div>
+              <h3 class="assurance__title">{item.title}</h3>
+              <p class="assurance__text">{item.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ FAQ: sticky heading beside the list ============ -->
+  <section class="band band--raised" id="faq">
+    <div class="container faq-layout">
+      <div class="faq-layout__head" data-reveal>
+        <p class="eyebrow">Common Questions</p>
+        <h2>FAQs</h2>
+        <p class="lede">Everything you need to know about our delivery area and how service works.</p>
+        <Button href={contact.smsHref} variant="link" icon="message">Text us your address</Button>
+      </div>
+      <Faq items={faqs} />
+    </div>
+  </section>
+
+  <CtaBand
+    title="Ready to Skip<br />The Marina Stop?"
+    text="Request delivery and we’ll confirm your scheduled window. No marina lines. No gas cans. Just fuel at your dock."
+  />
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ---------- shared heads + bands ---------- */
+  .head {
+    margin-bottom: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+
+  .head > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  @media (min-width: 60em) {
+    .head--split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+      align-items: end;
+    }
+  }
+
+  @media (max-width: 59.99em) {
+    .head--split > :global(.lede) {
+      margin-top: 1.25rem;
+    }
+  }
+
+  .band {
+    overflow-x: clip;
+    padding-block: var(--section-pad);
+    background:
+      radial-gradient(70% 40% at 50% 20%, rgb(55 138 221 / 0.1), transparent 70%),
+      var(--navy-900);
+  }
+
+  .band--raised {
+    background:
+      radial-gradient(60% 50% at 100% 0%, rgb(55 138 221 / 0.14), transparent 70%),
+      linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .band--abyss {
+    background:
+      radial-gradient(60% 50% at 0% 50%, rgb(31 95 158 / 0.16), transparent 70%),
+      linear-gradient(180deg, var(--ink), var(--abyss));
+    border-block: 1px solid var(--line);
+  }
+
+  .band--tight {
+    padding-block: clamp(3.5rem, 2rem + 5vw, 6.5rem);
+  }
+
+  /* ---------- hero ---------- */
+  .sa-hero {
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.3), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.22), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sa-hero :global(.sa-hero__lines) {
+    position: absolute;
+    inset: 18% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.4;
+  }
+
+  .sa-hero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.46rem, 0.9rem + 4.49vw, 5.88rem);
+    line-height: 0.9;
+  }
+
+  .sa-hero__title span {
+    display: block;
+  }
+
+  .sa-hero__accent {
+    color: var(--accent);
+  }
+
+  .sa-hero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .sa-hero__row :global(.lede) {
+    max-width: 34em;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  @media (min-width: 60em) {
+    .sa-hero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  .sa-hero__media {
+    position: relative;
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+  }
+
+  .sa-hero__photo {
+    overflow: hidden;
+    aspect-ratio: 21 / 9;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 0 0 1px var(--line-strong);
+  }
+
+  .sa-hero__photo :global(picture) {
+    display: block;
+    height: 100%;
+  }
+
+  .sa-hero__photo :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 58%;
+  }
+
+  .sa-hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0.75rem 0 0;
+    background: rgb(9 23 36 / 0.86);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .sa-hero__facts > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 1rem clamp(0.7rem, 0.4rem + 1.5vw, 1.6rem);
+  }
+
+  .sa-hero__facts > div + div {
+    border-left: 1px solid var(--line);
+  }
+
+  .sa-hero__facts dd {
+    margin: 0;
+    font-size: clamp(1.35rem, 0.9rem + 2vw, 2.6rem);
+    line-height: 1;
+  }
+
+  .sa-hero__facts small,
+  .sa-hero__facts dd span {
+    margin-inline: 0.08em;
+    font-size: 0.75em;
+    color: var(--accent);
+  }
+
+  .sa-hero__facts dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.35;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48em) {
+    .sa-hero__facts {
+      position: absolute;
+      left: clamp(1rem, 3vw, 2.5rem);
+      bottom: clamp(1rem, 3vw, 2.5rem);
+      width: min(40rem, 66%);
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 47.99em) {
+    .sa-hero__photo {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  /* ---------- our service area ---------- */
+  .coverage {
+    display: grid;
+    gap: 3.5rem;
+  }
+
+  @media (min-width: 62em) {
+    .coverage {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .coverage__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .coverage__copy > * + * {
+    margin-top: clamp(2.25rem, 1.5rem + 2vw, 3.25rem);
+  }
+
+  .coverage__intro > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .coverage__map {
+    perspective: 1800px;
+  }
+
+  .fuel__title {
+    font-family: var(--font-body);
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+  }
+
+  .fuel__rows {
+    margin-top: 1rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .fuel__rows li {
+    display: grid;
+    grid-template-columns: 6.75rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    min-height: 3.75rem;
+    padding-block: 0.75rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .fuel__key {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent);
+  }
+
+  .fuel__key.numeral {
+    font-size: var(--step-2);
+    color: var(--text);
+  }
+
+  .ask {
+    padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .ask > p {
+    color: var(--text-muted);
+  }
+
+  .ask > * + * {
+    margin-top: 1.25rem;
+  }
+
+  /* ---------- explainers ---------- */
+  .explainers {
+    display: grid;
+    gap: clamp(3.5rem, 2rem + 5vw, 7.5rem);
+  }
+
+  .explainer {
+    display: grid;
+    gap: 1.75rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .explainer {
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      gap: 4.5rem;
+    }
+
+    .explainer--flip {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
+    }
+
+    .explainer--flip .explainer__stage {
+      order: 2;
+    }
+  }
+
+  .explainer__stage {
+    position: relative;
+    padding-top: clamp(2.25rem, 1rem + 4vw, 4.5rem);
+    perspective: 1600px;
+  }
+
+  .explainer__index {
+    position: absolute;
+    top: 0;
+    left: -0.04em;
+    font-size: clamp(4.92rem, 2.25rem + 8.16vw, 10.5rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+  }
+
+  .explainer--flip .explainer__index {
+    left: auto;
+    right: -0.04em;
+  }
+
+  .explainer__photo {
+    position: relative;
+    z-index: 1;
+    width: 88%;
+    margin-left: auto;
+  }
+
+  .explainer--flip .explainer__photo {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .explainer__photo :global(.photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line-strong);
+    box-shadow:
+      var(--shadow-2),
+      0 50px 90px -40px rgb(0 0 0 / 0.85);
+  }
+
+  .explainer__step {
+    padding-bottom: 1rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .explainer__step .numeral {
+    font-size: var(--step-1);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+
+  .explainer__title {
+    margin-top: 1.5rem;
+    font-size: var(--step-4);
+    line-height: 0.95;
+  }
+
+  .explainer__body {
+    margin-top: 1.25rem;
+    max-width: 34em;
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  /* ---------- assurances ---------- */
+  .assurances {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+  }
+
+  @media (min-width: 40em) {
+    .assurances {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64em) {
+    .assurances {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .assurance {
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .assurance__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .assurance__num {
+    font-size: var(--step-3);
+    color: var(--accent);
+  }
+
+  .assurance__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .assurance__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .assurance__text {
+    margin-top: 0.75rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  /* ---------- faq ---------- */
+  .faq-layout {
+    display: grid;
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+  }
+
+  .faq-layout__head > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .faq-layout__head :global(.btn) {
+    margin-top: 1.75rem;
+  }
+
+  @media (min-width: 60em) {
+    .faq-layout {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+
+    .faq-layout__head {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+</style>

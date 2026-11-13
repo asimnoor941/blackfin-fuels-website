@@ -1,0 +1,245 @@
+---
+/**
+ * Smart link used by QR codes (see QrCode.astro): an iPhone or iPad goes to the
+ * App Store, an Android device to Google Play. Anything else stays here and
+ * sees both badges, a QR code and a link to /app/.
+ *
+ * The desktop fallback uses the home page's language: big Anton headline, a
+ * gradient card holding the badges and QR code, and one app screen. Nothing
+ * here moves (it is all on screen at load); data-3d="none" keeps motion.ts
+ * from auto-assigning a scroll turn to the phone.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import StoreBadges from '../components/StoreBadges.astro';
+import PhoneFrame from '../components/PhoneFrame.astro';
+import Contours from '../components/Contours.astro';
+import ScanCard from '../components/app/ScanCard.astro';
+import homeSavings from '../assets/app/home-savings.png';
+import { app } from '../data/site';
+
+const appStoreUrl = app.appStoreUrl;
+const playUrl = app.playUrl;
+---
+
+<BaseLayout
+  title="Get the Blackfin Fuels App"
+  description="Download the free Blackfin Fuels app for iPhone and Android. Order fuel to your dock, compare live marina prices, get updates and pay your invoices."
+  noindex
+  promo={false}
+  appBar={false}
+  breadcrumbs={[
+    { name: 'The App', href: '/app/' },
+    { name: 'Get the App', href: '/get-app/' },
+  ]}
+>
+  <script is:inline define:vars={{ appStoreUrl, playUrl }}>
+    (function () {
+      var ua = navigator.userAgent || '';
+      var isAndroid = /android/i.test(ua);
+      // iPadOS reports itself as a Mac; a touch screen gives it away.
+      var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isAndroid) window.location.replace(playUrl);
+      else if (isIOS) window.location.replace(appStoreUrl);
+    })();
+  </script>
+
+  <section class="get-app">
+    <Contours class="get-app__lines" lines={18} />
+    <div class="get-app__inner container">
+      <div class="get-app__copy">
+        <p class="eyebrow">The Blackfin Fuels App</p>
+        <h1 class="get-app__title">
+          <span>Get the Blackfin</span>
+          <span class="get-app__accent">Fuels app.</span>
+        </h1>
+
+        <p class="lede get-app__opening get-app__opening--ios" aria-live="polite">
+          Opening the App Store. If nothing happens, <a href={appStoreUrl}>open the App Store</a>.
+        </p>
+        <p class="lede get-app__opening get-app__opening--android" aria-live="polite">
+          Opening Google Play. If nothing happens, <a href={playUrl}>open Google Play</a>.
+        </p>
+        <p class="lede get-app__desktop">Free for iPhone and Android.</p>
+
+        <div class="get-app__card">
+          <div class="get-app__badges">
+            <StoreBadges placement="get-app" size="lg" adaptive />
+          </div>
+
+          <noscript>
+            <p class="get-app__noscript">
+              <a href={appStoreUrl}>Download on the App Store</a> or <a href={playUrl}>get it on Google Play</a>.
+            </p>
+          </noscript>
+
+          <div class="get-app__scan">
+            <ScanCard source="get-app" size={148} always />
+          </div>
+        </div>
+
+        <p class="get-app__more">
+          <Button href={app.page} variant="link">See what the app does</Button>
+        </p>
+      </div>
+
+      <figure class="get-app__visual" data-3d="none">
+        <div class="get-app__ring" aria-hidden="true"></div>
+        <PhoneFrame
+          src={homeSavings}
+          alt="App home screen comparing the Blackfin price per gallon with a nearby marina price, with a cost calculator and a Schedule delivery button"
+          width="min(17rem, 100%)"
+          tilt={-14}
+          eager
+        />
+        <figcaption class="get-app__caption">Screens show sample data.</figcaption>
+      </figure>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .get-app {
+    position: relative;
+    z-index: var(--z-content);
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.3rem)) 0 clamp(4rem, 2rem + 6vw, 7.5rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .get-app :global(.get-app__lines) {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: -1;
+    opacity: 0.4;
+  }
+
+  .get-app__inner {
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .get-app__inner {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    }
+  }
+
+  .get-app__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.3rem, 0.9rem + 3.81vw, 4.9rem);
+    line-height: 0.9;
+  }
+
+  .get-app__title span {
+    display: block;
+  }
+
+  .get-app__accent {
+    color: var(--accent);
+  }
+
+  .get-app__copy > .lede {
+    margin-top: 1.5rem;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  .get-app__opening {
+    display: none;
+  }
+
+  .get-app__opening a,
+  .get-app__noscript a {
+    display: inline-block;
+    padding-block: 0.65rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  :global(html[data-platform='ios']) .get-app__opening--ios,
+  :global(html[data-platform='android']) .get-app__opening--android {
+    display: block;
+  }
+
+  :global(html[data-platform='ios']) .get-app__desktop,
+  :global(html[data-platform='android']) .get-app__desktop {
+    display: none;
+  }
+
+  /* Gradient card holding both ways to get the app. */
+  .get-app__card {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    padding: clamp(1.4rem, 1rem + 2.4vw, 2.75rem);
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.4), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow: var(--shadow-2);
+  }
+
+  .get-app__noscript {
+    color: var(--text);
+  }
+
+  .get-app__scan :global(.scan) {
+    max-width: none;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .get-app__scan :global(.scan__text) {
+    color: var(--text);
+    opacity: 0.85;
+  }
+
+  .get-app__more {
+    margin-top: 1.75rem;
+  }
+
+  .get-app__visual {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  .get-app__ring {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: min(30rem, 120%);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    z-index: -1;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.18), transparent 70%);
+    box-shadow: 0 0 0 3.5rem rgb(157 205 255 / 0.025);
+  }
+
+  .get-app__caption {
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* On a phone the visitor is being sent to the store; keep the page short. */
+  @media (max-width: 59.99em) {
+    .get-app__visual {
+      display: none;
+    }
+  }
+</style>

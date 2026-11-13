@@ -1,0 +1,1950 @@
+---
+/**
+ * Our own fuel booking form. It follows the app's "Request Fuel" screen
+ * (Blackfin_app app/(tabs)/book.tsx) so a website booking asks the same things
+ * the app does: how much REC-90 (Fill to Full or an exact amount), when
+ * (ASAP, by a date, or on an exact date, weekdays only), where the boat is and
+ * what the driver is filling, then the same "Before you submit" checklist.
+ *
+ * Shows today's live price (from /api/price) and the estimated total
+ * (price x gallons, delivery included). Posts JSON to /api/order
+ * (functions/api/order.ts), which forwards it to the hub. Validates in the
+ * browser and again on the server. The success screen points them to the app.
+ *
+ *   <OrderForm />
+ *   <OrderForm title="Book your delivery" note="Takes about a minute." heading="h2" />
+ *
+ * id   Prefix for field ids. Change it if two forms ever sit on one page.
+ */
+import Icon from './Icon.astro';
+import StoreBadges from './StoreBadges.astro';
+import QrCode from './QrCode.astro';
+import { app, contact, forms, orderAreas, orderTerms } from '../data/site';
+
+interface Props {
+  title?: string;
+  note?: string;
+  heading?: 'h2' | 'h3';
+  id?: string;
+  /** Short id of where the form sits, sent with the order and to analytics. */
+  placement?: string;
+  class?: string;
+}
+
+const { title, note, heading = 'h3', id = 'order', placement = 'page', class: className } = Astro.props;
+const Heading = heading;
+const f = (name: string) => `${id}-${name}`;
+const min = forms.minGallons;
+---
+
+<div class:list={['oform', className]}>
+  {
+    (title || note) && (
+      <div class="oform__head">
+        {title && <Heading class="oform__title">{title}</Heading>}
+        {note && <p class="oform__note">{note}</p>}
+      </div>
+    )
+  }
+
+  <form
+    class="oform__form"
+    action={forms.orderEndpoint}
+    method="post"
+    novalidate
+    data-order-form
+    data-placement={placement}
+    data-min={min}
+  >
+    <fieldset class="oform__group">
+      <legend class="oform__legend"><span class="numeral">01</span> How much REC-90?</legend>
+      <div class="amount" role="radiogroup" aria-label="How much REC-90?" id={f('fillType')}>
+        <label class="amount__card">
+          <input type="radio" name="fillType" value="fill" />
+          <span class="amount__title">Fill to Full</span>
+          <span class="amount__sub" data-amount-sub="fill">we fill the tank</span>
+        </label>
+        <label class="amount__card">
+          <input type="radio" name="fillType" value="exact" />
+          <span class="amount__title">Exact amount</span>
+          <span class="amount__sub" data-amount-sub="exact">not a fill</span>
+        </label>
+      </div>
+
+      <div class="amount__panel" data-panel="fill" hidden>
+        <label class="field__label" for={f('fillGuess')}>About how many gallons to fill it up? Your best guess is fine.</label>
+        <div class="amount__row">
+          <span class="unit-input">
+            <input id={f('fillGuess')} name="fillGuess" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="0" />
+            <span aria-hidden="true">Gallons</span>
+          </span>
+          <label class="chip chip--check">
+            <input type="checkbox" name="fillUnknown" value="yes" />
+            <span>I don’t know</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="amount__panel" data-panel="exact" hidden>
+        <label class="field__label" for={f('exactGallons')}>Gallons</label>
+        <div class="amount__row">
+          <div class="stepper">
+            <button type="button" data-step="-10" aria-label="10 gallons less"><Icon name="minus" size={18} /></button>
+            <span class="unit-input">
+              <input id={f('exactGallons')} name="exactGallons" type="number" inputmode="numeric" min={min} max="9999" step="1" value={min} />
+              <span aria-hidden="true">Gallons</span>
+            </span>
+            <button type="button" data-step="10" aria-label="10 gallons more"><Icon name="plus" size={18} /></button>
+          </div>
+        </div>
+        <p class="field__hint">We deliver exactly this many gallons, not a fill to full. Minimum {min} gallons.</p>
+      </div>
+
+      <p class="field__error" id={f('fillType-error')} hidden></p>
+      <p class="field__hint oform__gap">Final amount is measured at the pump.</p>
+    </fieldset>
+
+    <fieldset class="oform__group">
+      <legend class="oform__legend"><span class="numeral">02</span> When do you need fuel?</legend>
+      <div class="when" role="radiogroup" aria-label="When do you need fuel?">
+        <label class="when__card">
+          <input type="radio" name="dateType" value="asap" checked />
+          <span class="when__title">ASAP</span>
+          <span class="when__sub">Soonest available. We’ll confirm your delivery day</span>
+        </label>
+        <label class="when__card">
+          <input type="radio" name="dateType" value="before" />
+          <span class="when__title">By a date</span>
+          <span class="when__sub">Deliver by your chosen date, sooner is OK</span>
+        </label>
+        <label class="when__card">
+          <input type="radio" name="dateType" value="on" />
+          <span class="when__title">On an exact date</span>
+          <span class="when__sub">Deliver on that day exactly</span>
+        </label>
+      </div>
+
+      <p class="field__hint oform__gap" data-when-asap>No date needed. We’ll slot you onto the soonest route in your area and confirm your delivery day.</p>
+
+      <div class="oform__grid oform__gap" data-when-date hidden>
+        <div class="field">
+          <label for={f('date')}>Date <span aria-hidden="true">*</span></label>
+          <input id={f('date')} name="date" type="date" />
+          <p class="field__hint">We deliver Monday to Friday.</p>
+          <p class="field__error" id={f('date-error')} hidden></p>
+        </div>
+        <label class="check check--sooner" data-when-sooner hidden>
+          <input type="checkbox" name="okSooner" value="yes" />
+          <span>
+            <strong>Sooner is OK if a route has room</strong>
+            <small>If we have an opening before this day, we may come early.</small>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="oform__group">
+      <legend class="oform__legend"><span class="numeral">03</span> Your boat</legend>
+      <div class="oform__grid">
+        <div class="field field--wide">
+          <label for={f('address')}>Dock / home address <span aria-hidden="true">*</span></label>
+          <input
+            id={f('address')}
+            name="address"
+            type="text"
+            autocomplete="street-address"
+            required
+            maxlength="200"
+            placeholder="Street, city and ZIP of the dock"
+          />
+          <p class="field__error" id={f('address-error')} hidden></p>
+        </div>
+        <div class="field">
+          <label for={f('area')}>Area <span aria-hidden="true">*</span></label>
+          <div class="field__select">
+            <select id={f('area')} name="area" required>
+              <option value="">Choose your area</option>
+              {orderAreas.map((area) => <option value={area}>{area}</option>)}
+            </select>
+            <Icon name="chevron-down" size={18} />
+          </div>
+          <p class="field__error" id={f('area-error')} hidden></p>
+        </div>
+        <div class="field">
+          <span class="field__label" id={f('boatType-label')}>Type</span>
+          <div class="segmented" role="radiogroup" aria-labelledby={f('boatType-label')}>
+            <label><input type="radio" name="boatType" value="Boat" checked /><span>Boat</span></label>
+            <label><input type="radio" name="boatType" value="Jet ski" /><span>Jet ski</span></label>
+            <label><input type="radio" name="boatType" value="Other" /><span>Other</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field__label" id={f('tanks-label')}>Number of fuel tanks</span>
+          <div class="segmented segmented--4" role="radiogroup" aria-labelledby={f('tanks-label')}>
+            <label><input type="radio" name="tanks" value="1" checked /><span>1</span></label>
+            <label><input type="radio" name="tanks" value="2" /><span>2</span></label>
+            <label><input type="radio" name="tanks" value="3" /><span>3</span></label>
+            <label><input type="radio" name="tanks" value="4" /><span>4+</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for={f('tankGallons')}>Tank size <span class="field__opt">(gallons, all tanks together)</span></label>
+          <input id={f('tankGallons')} name="tankGallons" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="e.g. 150" />
+        </div>
+        <div class="field field--wide">
+          <label for={f('boatName')}>Boat name <span class="field__opt">(optional)</span></label>
+          <input id={f('boatName')} name="boatName" type="text" maxlength="120" placeholder="Name, make or length" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="oform__group">
+      <legend class="oform__legend"><span class="numeral">04</span> Your details</legend>
+      <div class="oform__grid">
+        <div class="field">
+          <label for={f('name')}>Full name <span aria-hidden="true">*</span></label>
+          <input id={f('name')} name="name" type="text" autocomplete="name" required maxlength="120" />
+          <p class="field__error" id={f('name-error')} hidden></p>
+        </div>
+        <div class="field">
+          <label for={f('phone')}>Mobile number <span aria-hidden="true">*</span></label>
+          <input id={f('phone')} name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="30" placeholder="(941) 555-0123" />
+          <p class="field__hint">We text you here to confirm your delivery day.</p>
+          <p class="field__error" id={f('phone-error')} hidden></p>
+        </div>
+        <div class="field field--wide">
+          <label for={f('email')}>Email <span class="field__opt">(optional)</span></label>
+          <input id={f('email')} name="email" type="email" autocomplete="email" maxlength="160" />
+          <p class="field__error" id={f('email-error')} hidden></p>
+        </div>
+        <div class="field field--wide">
+          <label for={f('notes')}>Notes <span class="field__opt">(optional)</span></label>
+          <textarea id={f('notes')} name="notes" rows="2" maxlength="1000" placeholder="Gate code, access notes, anything the crew should know…"></textarea>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="quote" data-price-block hidden>
+      <div class="quote__cell">
+        <span class="quote__label">Today’s REC-90 price</span>
+        <span class="quote__value numeral"><span data-price>…</span><small>/gal</small></span>
+        <span class="quote__meta" data-price-updated></span>
+      </div>
+      <div class="quote__cell quote__cell--total">
+        <span class="quote__label">Estimated total</span>
+        <span class="quote__value numeral" data-total aria-live="polite">Choose an amount</span>
+        <span class="quote__meta">Final price measured at the pump · $0 delivery fee</span>
+      </div>
+    </div>
+    <p class="field__hint" data-price-missing>Today’s price is confirmed by text before your delivery.</p>
+
+    <fieldset class="oform__group terms" id={f('terms')}>
+      <legend class="oform__legend">Before you submit</legend>
+      <p class="terms__sub" data-terms-sub>Please confirm each item below.</p>
+      <ul class="terms__list">
+        {
+          orderTerms.map((item, i) => (
+            <li>
+              <label class="check">
+                <input type="checkbox" name="terms" value={String(i)} />
+                <span>{item}</span>
+              </label>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="field__error" id={f('terms-error')} hidden></p>
+    </fieldset>
+
+    <!-- Spam trap: people never see or fill this. -->
+    <div class="oform__trap" aria-hidden="true">
+      <label>Company <input type="text" name="company" tabindex="-1" autocomplete="off" /></label>
+    </div>
+
+    <div class="oform__submit">
+      <button class="oform__button" type="submit">
+        <span class="oform__button-label">Confirm request</span>
+        <span class="oform__spinner" aria-hidden="true"></span>
+        <Icon name="arrow-right" size={18} class="oform__arrow" />
+      </button>
+      <p class="oform__legal">
+        No payment now. We review your request and text to confirm your delivery day, then you can track it and pay the invoice in the
+        app. By sending this you agree that we may call or text you about your delivery.
+      </p>
+    </div>
+    <p class="oform__status" role="status" aria-live="polite" data-form-status></p>
+  </form>
+
+  <div class="oform__sent" data-form-sent hidden tabindex="-1">
+    <span class="oform__sent-icon"><Icon name="check" size={22} /></span>
+    <div>
+      <p class="oform__sent-title">Order received.</p>
+      <p>We’ll text you to confirm your delivery day. <button type="button" class="oform__sent-link" data-confirm-open>See your order</button></p>
+    </div>
+  </div>
+
+  <dialog class="oconfirm" data-order-confirm aria-labelledby={f('confirm-title')} closedby="any" data-lenis-prevent>
+    <div class="oconfirm__panel">
+      <button class="oconfirm__close" type="button" data-confirm-close aria-label="Close">
+        <Icon name="close" size={20} />
+      </button>
+
+      <div class="oconfirm__badge" aria-hidden="true" data-float-open>
+        <span class="oconfirm__ring"></span>
+        <span class="oconfirm__ring oconfirm__ring--2"></span>
+        <svg viewBox="0 0 80 80" class="oconfirm__mark">
+          <circle class="oconfirm__circle" cx="40" cy="40" r="36"></circle>
+          <path class="oconfirm__tick" d="M25 41.5 35 51.5 56 30"></path>
+        </svg>
+      </div>
+
+      <div class="oconfirm__body">
+        <p class="eyebrow">Order received</p>
+        <h2 class="oconfirm__title" id={f('confirm-title')}>Thanks<span data-done-name></span>! We received your order.</h2>
+        <span class="oform__pill">Pending confirmation</span>
+        <p class="oconfirm__lede">Blackfin Fuels will review it and text you to confirm your delivery day.</p>
+
+        <div class="oconfirm__app">
+          <p class="oconfirm__app-title"><Icon name="smartphone" size={20} /> To track your order, please download our app</p>
+          <p>Sign in with the same mobile number to follow your delivery and pay your invoice.</p>
+          <div class="oform__app-get">
+            <QrCode source="booking-done" size={96} class="oform__qr" />
+            <StoreBadges placement="booking-done" size="md" adaptive align="center" />
+          </div>
+          <p class="oconfirm__ref"><Icon name="gift" size={16} /> {app.referral.terms} New Blackfin customers only.</p>
+        </div>
+
+        <dl class="oform__summary">
+          <div><dt>Delivery location</dt><dd data-sum="address"></dd></div>
+          <div><dt>Fuel type</dt><dd>REC-90</dd></div>
+          <div><dt>Fuel quantity</dt><dd data-sum="amount"></dd></div>
+          <div><dt>Delivery date</dt><dd data-sum="date"></dd></div>
+        </dl>
+
+        <div class="oconfirm__foot">
+          <button class="oconfirm__done" type="button" data-confirm-close>Done</button>
+          <a href={contact.phoneHref}><Icon name="phone" size={16} /> {contact.phoneDisplay}</a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<style>
+  /* The booking form never moves. It glows instead: a soft halo plus a light
+     that slowly travels round its border. Reduced motion keeps a still glow. */
+  @property --oform-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  .oform {
+    isolation: isolate;
+    box-shadow:
+      0 0 0 1px rgb(95 175 255 / 0.35),
+      0 30px 80px -30px rgb(0 0 0 / 0.8),
+      0 0 70px -12px rgb(95 175 255 / 0.4);
+  }
+
+  .oform::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    padding: 2px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--oform-angle),
+      transparent 0deg,
+      transparent 200deg,
+      rgb(95 175 255 / 0.85) 260deg,
+      rgb(255 255 255 / 0.95) 285deg,
+      rgb(95 175 255 / 0.85) 310deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+
+  .oform::after {
+    content: '';
+    position: absolute;
+    inset: -2.5rem;
+    z-index: -1;
+    border-radius: calc(var(--radius-lg) + 2.5rem);
+    background: radial-gradient(closest-side, rgb(95 175 255 / 0.28), transparent);
+    filter: blur(20px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .oform::before {
+      animation: oform-orbit 7s linear infinite;
+    }
+
+    .oform::after {
+      animation: oform-breathe 4.5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes oform-orbit {
+    to {
+      --oform-angle: 360deg;
+    }
+  }
+
+  @keyframes oform-breathe {
+    50% {
+      opacity: 1;
+      transform: scale(1.03);
+    }
+  }
+
+  :global(.tone-light) .oform {
+    box-shadow:
+      0 0 0 1px rgb(55 138 221 / 0.35),
+      0 30px 70px -30px rgb(12 30 47 / 0.35),
+      0 0 60px -12px rgb(95 175 255 / 0.45);
+  }
+
+  .oform__gap {
+    margin-top: 0.45rem;
+  }
+
+
+  /* inline note left in place of the form after sending */
+  .oform__sent {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+    color: var(--text-muted);
+    background: rgb(95 175 255 / 0.08);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    outline: none;
+    scroll-margin-top: 6rem;
+  }
+
+  .oform__sent[hidden] {
+    display: none;
+  }
+
+  .oform__sent-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .oform__sent-title {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .oform__sent-link {
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* confirmation pop-up */
+  .oconfirm {
+    width: min(100% - 1.5rem, 34rem);
+    max-width: none;
+    max-height: min(100dvh - 1.5rem, 54rem);
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    color: var(--text-muted);
+    background: transparent;
+    border: 0;
+  }
+
+  .oconfirm::backdrop {
+    background: rgb(4 11 18 / 0.7);
+    backdrop-filter: blur(6px);
+  }
+
+  .oconfirm__panel {
+    position: relative;
+    max-height: inherit;
+    overflow-y: auto;
+    padding: clamp(1.4rem, 1rem + 1.6vw, 2.2rem);
+    text-align: center;
+    background:
+      radial-gradient(90% 50% at 50% 0%, rgb(95 175 255 / 0.28), transparent 70%),
+      linear-gradient(165deg, #10304f, var(--navy-800) 60%, var(--navy-900));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .oconfirm__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .oconfirm__close:hover {
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+
+  .oconfirm__badge {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 6rem;
+    height: 6rem;
+    margin: 0.5rem auto 1.25rem;
+  }
+
+  .oconfirm__mark {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .oconfirm__circle {
+    fill: var(--accent);
+    stroke: var(--accent);
+    stroke-width: 3;
+  }
+
+  .oconfirm__tick {
+    stroke: var(--on-accent);
+    stroke-width: 6;
+  }
+
+  .oconfirm__ring {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+  }
+
+  .oconfirm__body {
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+  }
+
+  .oconfirm__title {
+    font-size: clamp(1.7rem, 1.3rem + 1.8vw, 2.4rem);
+    line-height: 1.05;
+    color: var(--text);
+  }
+
+  .oconfirm__lede {
+    max-width: 26rem;
+  }
+
+  .oconfirm .oform__summary {
+    text-align: left;
+  }
+
+  .oconfirm__app {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 1.25rem;
+    background: rgb(95 175 255 / 0.1);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+  }
+
+  .oconfirm__app-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: var(--step-0);
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .oconfirm__app-title :global(.icon),
+  .oconfirm__ref :global(.icon) {
+    flex: none;
+    color: var(--accent);
+  }
+
+  .oconfirm__app p:not(.oconfirm__app-title) {
+    font-size: var(--step--1);
+  }
+
+  .oconfirm__app .oform__app-get {
+    justify-content: center;
+    margin-top: 0.3rem;
+  }
+
+  .oconfirm__ref {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.45rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .oconfirm__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .oconfirm__done {
+    min-height: 3.2rem;
+    padding: 0.8rem 2.4rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: var(--radius);
+  }
+
+  .oconfirm__done:hover {
+    background: var(--accent-strong);
+  }
+
+  .oconfirm__foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .oconfirm__foot a :global(.icon) {
+    color: var(--accent);
+  }
+
+  /* Animation: the panel pops in, the circle and tick draw, rings ripple out,
+     then the content rises in. Skipped for reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .oconfirm[open] .oconfirm__panel {
+      animation: oconfirm-pop 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+    }
+
+    .oconfirm[open]::backdrop {
+      animation: oconfirm-fade 0.3s ease both;
+    }
+
+    .oconfirm[open] .oconfirm__circle {
+      stroke-dasharray: 227;
+      animation:
+        oconfirm-circle 0.6s 0.2s ease-out both,
+        oconfirm-fill 0.3s 0.7s ease-out both;
+    }
+
+    .oconfirm[open] .oconfirm__tick {
+      stroke-dasharray: 48;
+      animation: oconfirm-tick 0.4s 0.85s ease-out both;
+    }
+
+    .oconfirm[open] .oconfirm__mark {
+      animation: oconfirm-bump 0.45s 0.8s ease-out both;
+    }
+
+    .oconfirm[open] .oconfirm__ring {
+      animation: oconfirm-ripple 1.4s 0.9s ease-out both;
+    }
+
+    .oconfirm[open] .oconfirm__ring--2 {
+      animation-delay: 1.15s;
+    }
+
+    .oconfirm[open] .oconfirm__body > * {
+      animation: oconfirm-rise 0.5s ease-out both;
+    }
+
+    .oconfirm[open] .oconfirm__body > :nth-child(1) { animation-delay: 0.5s; }
+    .oconfirm[open] .oconfirm__body > :nth-child(2) { animation-delay: 0.58s; }
+    .oconfirm[open] .oconfirm__body > :nth-child(3) { animation-delay: 0.66s; }
+    .oconfirm[open] .oconfirm__body > :nth-child(4) { animation-delay: 0.74s; }
+    .oconfirm[open] .oconfirm__body > :nth-child(5) { animation-delay: 0.82s; }
+    .oconfirm[open] .oconfirm__body > :nth-child(7) { animation-delay: 1.05s; }
+
+    .oconfirm[open] .oconfirm__body > .oconfirm__app {
+      animation:
+        oconfirm-rise 0.5s 0.82s ease-out both,
+        oconfirm-glow 2.4s 1.6s ease-in-out 2;
+    }
+  }
+
+  @keyframes oconfirm-pop {
+    from {
+      opacity: 0;
+      transform: translateY(2rem) scale(0.9);
+    }
+  }
+
+  @keyframes oconfirm-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes oconfirm-circle {
+    from {
+      stroke-dashoffset: 227;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes oconfirm-tick {
+    from {
+      stroke-dashoffset: 48;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes oconfirm-fill {
+    from {
+      fill: transparent;
+    }
+  }
+
+  @keyframes oconfirm-bump {
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
+  @keyframes oconfirm-ripple {
+    from {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+  }
+
+  @keyframes oconfirm-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.9rem);
+    }
+  }
+
+  @keyframes oconfirm-glow {
+    50% {
+      box-shadow:
+        0 0 0 6px rgb(95 175 255 / 0.15),
+        0 0 40px -6px var(--glow);
+    }
+  }
+
+  /* amount + when cards (same choices as the app) */
+  .amount,
+  .when {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .amount {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (min-width: 40em) {
+    .when {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .amount__card,
+  .when__card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.1rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition:
+      border-color var(--dur-1) ease,
+      background-color var(--dur-1) ease;
+  }
+
+  .amount__card:hover,
+  .when__card:hover {
+    border-color: var(--accent);
+  }
+
+  .amount__card input,
+  .when__card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .amount__card:has(input:checked),
+  .when__card:has(input:checked) {
+    background: rgb(95 175 255 / 0.14);
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+
+  .amount__card:has(input:focus-visible),
+  .when__card:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .amount__title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+
+  .when__title {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .amount__sub,
+  .when__sub {
+    font-size: var(--step--2);
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  .amount__panel {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    padding: 0.65rem 0.85rem;
+    background: rgb(95 175 255 / 0.06);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .amount__panel[hidden],
+  [data-when-date][hidden],
+  [data-when-sooner][hidden],
+  [data-when-asap][hidden] {
+    display: none;
+  }
+
+  .amount__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .unit-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.9rem;
+    padding: 0 0.8rem 0 0.35rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .unit-input:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(95 175 255 / 0.25);
+  }
+
+  .unit-input input {
+    width: 5rem;
+    min-height: 2.4rem;
+    padding: 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--text);
+    background: transparent;
+    border: 0;
+    -moz-appearance: textfield;
+  }
+
+  .unit-input input::-webkit-inner-spin-button,
+  .unit-input input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .unit-input input:focus-visible {
+    outline: none;
+  }
+
+  .unit-input span {
+    font-size: var(--step--2);
+    font-weight: 600;
+    color: var(--text-faint);
+  }
+
+  .unit-input [aria-invalid='true'] {
+    color: #ff9a9a;
+  }
+
+  .stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stepper button {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    color: var(--text);
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: 50%;
+  }
+
+  .stepper button:hover {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .segmented.segmented--4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* checkbox rows: "Sooner is OK" and the checklist */
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    font-size: var(--step--1);
+    line-height: 1.5;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .oform .check input {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    min-height: 0;
+    margin-top: 0.1rem;
+    padding: 0;
+    accent-color: var(--accent);
+  }
+
+  .check small {
+    display: block;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .check--sooner {
+    align-self: center;
+  }
+
+  .terms {
+    margin-top: 1rem;
+    padding: 0.85rem 0.95rem 0.8rem !important;
+    background: rgb(95 175 255 / 0.06);
+    border: 1px solid var(--line-strong) !important;
+    border-radius: var(--radius);
+  }
+
+  .terms .oform__legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 0.3rem;
+  }
+
+  .terms__sub {
+    clear: both;
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .terms__list {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .terms .field__error {
+    margin-top: 0.75rem;
+  }
+
+  .quote {
+    margin-top: 1rem;
+  }
+
+  .oform__pill {
+    padding: 0.3rem 0.8rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-pill);
+  }
+
+  .oform__summary {
+    display: grid;
+    width: 100%;
+    margin: 0.25rem 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .oform__summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+    font-size: var(--step--1);
+  }
+
+  .oform__summary > div + div {
+    border-top: 1px solid var(--line);
+  }
+
+  .oform__summary dt {
+    color: var(--text-muted);
+  }
+
+  .oform__summary dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    color: var(--text);
+  }
+</style>
+
+<style>
+  .oform {
+    --field-bg: rgb(255 255 255 / 0.04);
+    --field-border: var(--line-strong);
+    position: relative;
+    padding: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
+    background:
+      radial-gradient(120% 70% at 100% 0%, rgb(55 138 221 / 0.18), transparent 60%),
+      linear-gradient(170deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.015)),
+      var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+  }
+
+  :global(.tone-light) .oform {
+    --field-bg: #fff;
+    background: var(--white);
+  }
+
+  .oform__head {
+    margin-bottom: 1rem;
+  }
+
+  .oform__title {
+    font-size: var(--step-2);
+  }
+
+  .oform__note {
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+  }
+
+  .oform__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .oform__group + .oform__group {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .oform__legend {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin-bottom: 0.6rem;
+    padding: 0;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .oform__legend .numeral {
+    font-size: 1.25rem;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+  }
+
+  .oform__grid {
+    display: grid;
+    gap: 0.65rem 0.85rem;
+  }
+
+  @media (min-width: 36em) {
+    .oform__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .field--wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .field {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .field label,
+  .field__label {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .field__opt {
+    font-weight: 400;
+    color: var(--text-faint);
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    min-height: 2.9rem;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+    transition:
+      border-color var(--dur-1) ease,
+      box-shadow var(--dur-1) ease,
+      background-color var(--dur-1) ease;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 3.4rem;
+  }
+
+  .field input::placeholder,
+  .field textarea::placeholder {
+    color: var(--text-faint);
+  }
+
+  .field input:hover,
+  .field select:hover,
+  .field textarea:hover {
+    border-color: var(--accent);
+  }
+
+  .field input:focus-visible,
+  .field select:focus-visible,
+  .field textarea:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(95 175 255 / 0.25);
+  }
+
+  .field [aria-invalid='true'] {
+    border-color: #ff7b7b;
+  }
+
+  .field input[type='date'] {
+    color-scheme: inherit;
+  }
+
+  .field__select {
+    position: relative;
+  }
+
+  .field__select select {
+    appearance: none;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+
+  .field__select select option {
+    color: #0c1e2f;
+  }
+
+  .field__select :global(.icon) {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    pointer-events: none;
+  }
+
+  .field__hint {
+    font-size: var(--step--2);
+    color: var(--text-faint);
+  }
+
+  .field__error {
+    font-size: var(--step--2);
+    font-weight: 600;
+    color: #ff9a9a;
+  }
+
+  :global(.tone-light) .field__error {
+    color: #c62828;
+  }
+
+  /* gallon chips */
+  .gallons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: 3.9rem;
+    min-height: 3rem;
+    padding: 0.5rem 1rem;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-1) ease,
+      color var(--dur-1) ease,
+      border-color var(--dur-1) ease;
+  }
+
+  .chip:hover {
+    border-color: var(--accent);
+  }
+
+  .chip[aria-pressed='true'],
+  .chip--check:has(input:checked) {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .chip--input {
+    padding: 0 0.9rem 0 0.4rem;
+    cursor: text;
+  }
+
+  .chip--input:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(95 175 255 / 0.25);
+  }
+
+  .chip--input input {
+    width: 4.5rem;
+    min-height: 2.8rem;
+    padding: 0 0.4rem;
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    -moz-appearance: textfield;
+  }
+
+  .chip--input input::-webkit-inner-spin-button,
+  .chip--input input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .chip--input input:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .chip__unit {
+    font-family: var(--font-body);
+    font-size: var(--step--2);
+    font-weight: 600;
+    color: var(--text-faint);
+  }
+
+  .chip--check {
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+  }
+
+  .chip--check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .chip--check:focus-within {
+    box-shadow: 0 0 0 3px rgb(95 175 255 / 0.35);
+  }
+
+  /* AM / PM */
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0.2rem;
+    min-height: 2.9rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius-sm);
+  }
+
+  .segmented label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 2.15rem;
+    cursor: pointer;
+  }
+
+  .segmented input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .segmented span {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-size: var(--step--1);
+    font-weight: 700;
+    border-radius: 6px;
+    color: var(--text-muted);
+    transition:
+      background-color var(--dur-1) ease,
+      color var(--dur-1) ease;
+  }
+
+  .segmented input:checked + span {
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+
+  .segmented input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .oform__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* submit */
+  .oform__submit {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 1.1rem;
+  }
+
+  @media (min-width: 40em) {
+    .oform__submit {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 1.25rem;
+    }
+  }
+
+  .oform__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    min-height: 3rem;
+    padding: 0.75rem 1.6rem;
+    font-size: var(--step-0);
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: var(--radius);
+    box-shadow: 0 14px 34px -14px var(--glow);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .oform__button:hover {
+    background: var(--accent-strong);
+    transform: translateY(-1px);
+  }
+
+  .oform__button[disabled] {
+    cursor: progress;
+    opacity: 0.8;
+  }
+
+  .oform__spinner {
+    display: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: oform-spin 0.8s linear infinite;
+  }
+
+  .oform__button[disabled] .oform__spinner {
+    display: inline-block;
+  }
+
+  .oform__button[disabled] :global(.oform__arrow) {
+    display: none;
+  }
+
+  @keyframes oform-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  .oform__legal {
+    font-size: var(--step--2);
+    line-height: 1.55;
+    color: var(--text-faint);
+  }
+
+  .oform__status {
+    margin-top: 1rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .oform__status:empty {
+    display: none;
+  }
+
+  .oform__status[data-tone='error'] {
+    padding: 0.85rem 1rem;
+    color: #ffd2d2;
+    background: rgb(255 90 90 / 0.12);
+    border: 1px solid rgb(255 120 120 / 0.4);
+    border-radius: var(--radius-sm);
+  }
+
+  :global(.tone-light) .oform__status[data-tone='error'] {
+    color: #8e1c1c;
+  }
+
+  .oform__status a,
+  .oform__sent a {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* live price + total */
+  .quote {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    background: rgb(95 175 255 / 0.08);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+  }
+
+  .quote[hidden],
+  .field__hint[hidden] {
+    display: none;
+  }
+
+  .quote__cell {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .quote__cell--total {
+    background: rgb(95 175 255 / 0.12);
+    border-left: 1px solid var(--line-strong);
+  }
+
+  .quote__label {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .quote__value {
+    font-size: clamp(1.35rem, 1.15rem + 0.8vw, 1.75rem);
+    color: var(--text);
+  }
+
+  .quote__cell--total .quote__value {
+    color: var(--accent);
+  }
+
+  .quote__value small {
+    margin-left: 0.15em;
+    font-size: 0.5em;
+    color: var(--text-muted);
+  }
+
+  .quote__meta {
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 30em) {
+    .quote {
+      grid-template-columns: 1fr;
+    }
+    .quote__cell--total {
+      border-left: 0;
+      border-top: 1px solid var(--line-strong);
+    }
+  }
+
+  .oform__app {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 1.25rem;
+    background: rgb(95 175 255 / 0.08);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+  }
+
+  .oform__app-title {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .oform__app > p + p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+  }
+
+  .oform__app-get {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin-top: 1.1rem;
+  }
+
+  @media (max-width: 47.99em) {
+    .oform__app-get :global(.oform__qr) {
+      display: none;
+    }
+  }
+
+</style>
+
+<script>
+  import { track } from '../scripts/track';
+  import { money, paintPrices, type Price } from '../scripts/price';
+  import { orderTerms } from '../data/site';
+
+  let livePrice: Price | null = null;
+  const totals: Array<() => void> = [];
+  paintPrices().then((price) => {
+    livePrice = price;
+    totals.forEach((update) => update());
+  });
+
+  type Errors = Record<string, string>;
+
+  const PHONE = /^[+()\-.\s\d]{7,}$/;
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const MAX = 9999;
+
+  const isoToday = () => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  };
+  const isWeekend = (iso: string) => {
+    const day = new Date(`${iso}T12:00:00`).getDay();
+    return day === 0 || day === 6;
+  };
+  const prettyDate = (iso: string) =>
+    new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+  document.querySelectorAll<HTMLFormElement>('form[data-order-form]').forEach((form) => {
+    const root = form.parentElement!;
+    const sent = root.querySelector<HTMLElement>('[data-form-sent]');
+    const confirm = root.querySelector<HTMLDialogElement>('[data-order-confirm]');
+    const status = form.querySelector<HTMLElement>('[data-form-status]');
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const min = Number(form.dataset.min ?? 75);
+    const startedAt = Date.now();
+    let started = false;
+
+    const el = <T extends Element>(selector: string) => form.querySelector<T>(selector)!;
+    const fillGuess = el<HTMLInputElement>('input[name="fillGuess"]');
+    const fillUnknown = el<HTMLInputElement>('input[name="fillUnknown"]');
+    const exact = el<HTMLInputElement>('input[name="exactGallons"]');
+    const date = el<HTMLInputElement>('input[name="date"]');
+    const subFill = el<HTMLElement>('[data-amount-sub="fill"]');
+    const subExact = el<HTMLElement>('[data-amount-sub="exact"]');
+    const panels = Array.from(form.querySelectorAll<HTMLElement>('[data-panel]'));
+    const termBoxes = Array.from(form.querySelectorAll<HTMLInputElement>('input[name="terms"]'));
+    const termsSub = el<HTMLElement>('[data-terms-sub]');
+
+    const targets: Record<string, () => HTMLElement | null> = {
+      fillType: () => (fillType() === 'fill' ? fillGuess : fillType() === 'exact' ? exact : form.querySelector('input[name="fillType"]')),
+      terms: () => termBoxes.find((box) => !box.checked) ?? null,
+    };
+    const fieldFor = (name: string) => targets[name]?.() ?? form.querySelector<HTMLElement>(`[name="${name}"]`);
+    const errorFor = (name: string) => form.querySelector<HTMLElement>(`[id$="-${name}-error"]`);
+
+    const fillType = () => (new FormData(form).get('fillType') as 'fill' | 'exact' | null) ?? null;
+    const dateType = () => String(new FormData(form).get('dateType') ?? 'asap') as 'asap' | 'before' | 'on';
+    const exactValue = () => Math.round(Number(exact.value));
+    const guessValue = () => (fillUnknown.checked ? 0 : Math.round(Number(fillGuess.value)) || 0);
+
+    // Amount: show the panel for the chosen card and the app's card sub-text.
+    const syncAmount = () => {
+      const type = fillType();
+      panels.forEach((panel) => (panel.hidden = panel.dataset.panel !== type));
+      const guess = guessValue();
+      subFill.textContent =
+        type === 'fill' ? (fillUnknown.checked ? 'measured at the pump' : guess ? `about ${guess} gal` : 'we fill the tank') : 'we fill the tank';
+      subExact.textContent = type === 'exact' && exactValue() >= min ? `${exactValue()} gal only` : 'not a fill';
+    };
+    fillUnknown.addEventListener('change', () => {
+      if (fillUnknown.checked) fillGuess.value = '';
+    });
+    fillGuess.addEventListener('input', () => {
+      if (fillGuess.value) fillUnknown.checked = false;
+    });
+    form.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((stepButton) =>
+      stepButton.addEventListener('click', () => {
+        const next = (exactValue() || min) + Number(stepButton.dataset.step);
+        exact.value = String(Math.min(MAX, Math.max(min, next)));
+        clearError('fillType');
+        syncAmount();
+        updateTotal();
+      }),
+    );
+    // Like the app, a number under the minimum snaps up to it when the field is left.
+    exact.addEventListener('change', () => {
+      if (exact.value && exactValue() < min) exact.value = String(min);
+      if (exactValue() > MAX) exact.value = String(MAX);
+      syncAmount();
+      updateTotal();
+    });
+
+    // When: ASAP needs no date; the dated choices show the date, "on" also offers "sooner is OK".
+    const whenAsap = el<HTMLElement>('[data-when-asap]');
+    const whenDate = el<HTMLElement>('[data-when-date]');
+    const whenSooner = el<HTMLElement>('[data-when-sooner]');
+    const syncWhen = () => {
+      const type = dateType();
+      whenAsap.hidden = type !== 'asap';
+      whenDate.hidden = type === 'asap';
+      whenSooner.hidden = type !== 'on';
+      if (type === 'asap') clearError('date');
+    };
+    date.min = isoToday();
+
+    // Checklist: same wording as the app, all items must be ticked.
+    const syncTerms = () => {
+      const all = termBoxes.every((box) => box.checked);
+      termsSub.textContent = all ? 'All confirmed, thank you.' : 'Please confirm each item below.';
+      if (all) clearError('terms');
+    };
+
+    // Estimated total = live price x gallons (delivery is included).
+    const totalEl = form.querySelector<HTMLElement>('[data-total]');
+    function updateTotal() {
+      if (!totalEl || !livePrice) return;
+      const type = fillType();
+      const gallons = type === 'exact' ? exactValue() : type === 'fill' ? guessValue() : 0;
+      if (!type) totalEl.textContent = 'Choose an amount';
+      else if (type === 'fill' && !gallons) totalEl.textContent = 'On site';
+      else if (type === 'exact' && gallons < min) totalEl.textContent = `Min. ${min} gal`;
+      else totalEl.textContent = '~' + money(gallons * livePrice.price);
+    }
+    totals.push(updateTotal);
+
+    form.addEventListener('change', () => {
+      syncAmount();
+      syncWhen();
+      syncTerms();
+      updateTotal();
+    });
+    form.addEventListener('input', (event) => {
+      syncAmount();
+      updateTotal();
+      if (!started) {
+        started = true;
+        track('order_form_start', { placement: form.dataset.placement ?? '' });
+      }
+      const target = event.target as HTMLInputElement;
+      if (['fillType', 'fillGuess', 'fillUnknown', 'exactGallons'].includes(target.name)) clearError('fillType');
+      else if (target.name && target.getAttribute('aria-invalid') === 'true') clearError(target.name);
+    });
+
+    // Prefill from the "Need fuel?" pop-up (?area=...&amount=fill|exact).
+    const params = new URLSearchParams(window.location.search);
+    const areaParam = params.get('area');
+    const amountParam = params.get('amount');
+    if (areaParam || amountParam) {
+      const area = form.querySelector<HTMLSelectElement>('select[name="area"]');
+      if (area && areaParam && Array.from(area.options).some((o) => o.value === areaParam)) area.value = areaParam;
+      const card = form.querySelector<HTMLInputElement>(`input[name="fillType"][value="${amountParam === 'exact' ? 'exact' : 'fill'}"]`);
+      if (card && amountParam) card.checked = true;
+      const gallonsParam = Math.round(Number(params.get('gallons')));
+      if (amountParam === 'exact' && gallonsParam >= min && gallonsParam <= MAX) exact.value = String(gallonsParam);
+      requestAnimationFrame(() => {
+        form.scrollIntoView({ block: 'start' });
+        (amountParam ? (amountParam === 'exact' ? exact : fillGuess) : form.querySelector<HTMLInputElement>('input[name="fillType"]'))?.focus({
+          preventScroll: true,
+        });
+      });
+    }
+    syncAmount();
+    syncWhen();
+    syncTerms();
+
+    function setError(name: string, message: string): void {
+      const field = fieldFor(name);
+      const error = errorFor(name);
+      field?.setAttribute('aria-invalid', 'true');
+      if (field && error) field.setAttribute('aria-describedby', error.id);
+      if (error) {
+        error.textContent = message;
+        error.hidden = false;
+      }
+    }
+
+    function clearError(name: string): void {
+      form.querySelectorAll(name === 'fillType' ? '[name="fillGuess"], [name="exactGallons"], [name="fillType"]' : name === 'terms' ? '[name="terms"]' : `[name="${name}"]`).forEach(
+        (field) => field.removeAttribute('aria-invalid'),
+      );
+      const error = errorFor(name);
+      if (error) {
+        error.textContent = '';
+        error.hidden = true;
+      }
+    }
+
+    function collect() {
+      const data = new FormData(form);
+      const text = (key: string) => String(data.get(key) ?? '').trim();
+      const type = fillType();
+      const name = text('name');
+      const [firstName = '', ...rest] = name.split(/\s+/);
+      const gallons = type === 'exact' ? exactValue() : type === 'fill' ? guessValue() || null : null;
+      const when = dateType();
+      const ticked = termBoxes.filter((box) => box.checked).map((box) => orderTerms[Number(box.value)]);
+      return {
+        source: 'web',
+        fuelType: 'rec90',
+        name,
+        firstName,
+        lastName: rest.join(' '),
+        phone: text('phone'),
+        email: text('email'),
+        address: text('address'),
+        area: text('area'),
+        boat: {
+          type: text('boatType') || 'Boat',
+          tanks: Number(text('tanks')) || 1,
+          tankGallons: Number(text('tankGallons')) || null,
+          name: text('boatName'),
+        },
+        fillType: type,
+        /** Exact: the gallons to deliver. Fill: the customer's guess, or null for "I don't know". */
+        gallons,
+        dateType: when,
+        requestedDate: when === 'asap' ? '' : text('date'),
+        okSooner: when === 'before' ? true : when === 'on' ? data.get('okSooner') === 'yes' : true,
+        notes: text('notes'),
+        termsAck: { items: ticked, at: new Date().toISOString() },
+        company: text('company'),
+        placement: form.dataset.placement ?? '',
+        page: window.location.pathname,
+        elapsedMs: Date.now() - startedAt,
+        quotedPrice: livePrice && !livePrice.sample ? livePrice.price : null,
+        quotedAt: livePrice && !livePrice.sample ? livePrice.updatedAt : '',
+      };
+    }
+
+    function validate(order: ReturnType<typeof collect>): Errors {
+      const errors: Errors = {};
+      if (!order.fillType) errors.fillType = 'Choose Fill to Full or an exact amount.';
+      else if (order.fillType === 'fill' && !order.gallons && !fillUnknown.checked)
+        errors.fillType = 'Enter about how many gallons it will take (e.g. 120), or tick “I don’t know”.';
+      else if (order.fillType === 'exact' && (!order.gallons || order.gallons < min)) errors.fillType = `Minimum delivery is ${min} gallons.`;
+      if (order.dateType !== 'asap') {
+        if (!order.requestedDate) errors.date = 'Pick a date.';
+        else if (order.requestedDate < isoToday()) errors.date = 'Pick a date from today on.';
+        else if (isWeekend(order.requestedDate)) errors.date = 'We deliver Monday to Friday. Please pick a weekday.';
+      }
+      if (order.address.length < 5) errors.address = 'Tell us where your boat is docked.';
+      if (!order.area) errors.area = 'Please choose your area.';
+      if (order.name.length < 2) errors.name = 'Please enter your name.';
+      if (!PHONE.test(order.phone) || order.phone.replace(/\D/g, '').length < 10) errors.phone = 'Please enter a mobile number we can text.';
+      if (order.email && !EMAIL.test(order.email)) errors.email = 'That email address doesn’t look right.';
+      if (order.termsAck.items.length < orderTerms.length) errors.terms = 'Please confirm each item before you submit.';
+      return errors;
+    }
+
+    // Confirmation pop-up: opens after a successful send, closes with Done, X,
+    // Escape or a click outside, and can be reopened from the note left in place of the form.
+    function openConfirm() {
+      if (!confirm) return;
+      document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((d) => d !== confirm && d.close());
+      if (!confirm.open) confirm.showModal();
+      window.__lenis?.stop();
+      track('booking_confirm_view', { placement: form.dataset.placement ?? '' });
+    }
+    confirm?.addEventListener('close', () => {
+      window.__lenis?.start();
+      sent?.scrollIntoView({ block: 'start' });
+      sent?.focus({ preventScroll: true });
+    });
+    confirm?.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.target.closest('[data-confirm-close]') || event.target === confirm) confirm.close();
+    });
+    sent?.querySelector('[data-confirm-open]')?.addEventListener('click', openConfirm);
+
+    function fillSummary(order: ReturnType<typeof collect>) {
+      const set = (key: string, value: string) => {
+        const target = root.querySelector<HTMLElement>(`[data-sum="${key}"]`);
+        if (target) target.textContent = value;
+      };
+      const nameSlot = root.querySelector<HTMLElement>('[data-done-name]');
+      if (nameSlot) nameSlot.textContent = order.firstName ? `, ${order.firstName}` : '';
+      set('address', order.address);
+      set(
+        'amount',
+        order.fillType === 'exact' ? `${order.gallons} gal` : order.gallons ? `Fill to full (about ${order.gallons} gal)` : 'Fill to full',
+      );
+      set(
+        'date',
+        order.dateType === 'asap'
+          ? 'ASAP, soonest available'
+          : order.dateType === 'before'
+            ? `By ${prettyDate(order.requestedDate)}`
+            : prettyDate(order.requestedDate),
+      );
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!status || !button) return;
+      status.textContent = '';
+      status.removeAttribute('data-tone');
+
+      const order = collect();
+      ['fillType', 'date', 'address', 'area', 'name', 'phone', 'email', 'terms'].forEach(clearError);
+      const errors = validate(order);
+      const names = Object.keys(errors);
+      if (names.length) {
+        names.forEach((name) => setError(name, errors[name]));
+        fieldFor(names[0])?.focus();
+        status.dataset.tone = 'error';
+        status.textContent = names.length === 1 ? 'Please fix the highlighted item.' : `Please fix the ${names.length} highlighted items.`;
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        let ok = false;
+        if (import.meta.env.DEV || import.meta.env.PUBLIC_DEMO === '1') {
+          // Local development and the demo build have no CRM: log the order instead of sending it.
+          console.info('[order form] would send', order);
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          ok = true;
+        } else {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', accept: 'application/json' },
+            body: JSON.stringify(order),
+          });
+          ok = response.ok;
+        }
+        if (!ok) throw new Error('rejected');
+
+        track('booking_request_submit', { placement: order.placement, area: order.area, fill_type: order.fillType ?? '', date_type: order.dateType });
+        try {
+          localStorage.setItem('bf:booked', String(Date.now()));
+        } catch {
+          /* storage unavailable */
+        }
+        fillSummary(order);
+        form.hidden = true;
+        if (sent) sent.hidden = false;
+        openConfirm();
+      } catch {
+        status.dataset.tone = 'error';
+        status.innerHTML =
+          'Something went wrong. Please try again, or call <a href="tel:+19417240453">(941) 724-0453</a>.';
+        track('order_form_error', { placement: order.placement });
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+</script>

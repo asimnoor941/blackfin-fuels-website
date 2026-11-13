@@ -1,0 +1,85 @@
+---
+/**
+ * Slim bar above the header that points at the app. Wording follows the live
+ * site's bar. Shown from tablet width up; phones get the app pop-up instead.
+ */
+import Icon from './Icon.astro';
+import { app } from '../data/site';
+---
+
+<aside class="app-bar" aria-label="Blackfin Fuels app">
+  <div class="app-bar__inner container">
+    <p class="app-bar__text">
+      <span class="app-bar__title">Download our app</span>
+      <span class="app-bar__flow" aria-label="Compare prices, order, track, pay">
+        <span>Compare prices</span><Icon name="arrow-right" size={13} /><span>Order</span><Icon name="arrow-right" size={13} /><span>Track</span><Icon name="arrow-right" size={13} /><span>Pay</span>
+      </span>
+    </p>
+    <a class="app-bar__link" href={app.page}>Get the app <Icon name="arrow-right" size={14} /></a>
+  </div>
+</aside>
+
+<style>
+  .app-bar {
+    display: none;
+    position: relative;
+    z-index: var(--z-header);
+    background: linear-gradient(90deg, #0a2540, #123a63 50%, #0a2540);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step--2);
+  }
+
+  .app-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    min-height: 2.5rem;
+  }
+
+  .app-bar__text {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-muted);
+  }
+
+  .app-bar__title {
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .app-bar__flow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .app-bar__flow :global(.icon) {
+    color: var(--accent);
+  }
+
+  .app-bar__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.5rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--accent);
+  }
+
+  .app-bar__link:hover {
+    color: var(--accent-strong);
+  }
+
+  @media (min-width: 48em) {
+    .app-bar {
+      display: block;
+    }
+  }
+</style>

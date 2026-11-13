@@ -1,0 +1,733 @@
+---
+/**
+ * The app. Same design language as the home page: big Anton headlines, split
+ * headers, hairline-ruled rows and dark section bands. 3D on the content, driven
+ * by scroll (see src/scripts/motion.ts):
+ *   - feature tour: the sticky phone swings in (inside FeatureTour)
+ *   - referral: the phone keeps turning while it is on screen
+ *   - set-up steps: the cards hinge up one by one
+ * The hero is on screen at load, so it does not move.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Icon from '../components/Icon.astro';
+import StoreBadges from '../components/StoreBadges.astro';
+import PhoneFrame from '../components/PhoneFrame.astro';
+import AppHero from '../components/app/AppHero.astro';
+import FeatureTour from '../components/app/FeatureTour.astro';
+import ScanCard from '../components/app/ScanCard.astro';
+import referralScreen from '../assets/app/referral.png';
+import { app, contact, site, ORDER_URL } from '../data/site';
+
+const description =
+  "Order fuel to your dock in a few taps, compare live marina prices, get updates when we're on the way and pay your invoices. Free for iPhone and Android.";
+
+const features = [
+  {
+    icon: 'tag',
+    title: 'See every marina price near you',
+    text: 'Live fuel pricing at marinas in your area, so you always know how our price compares.',
+    screen: 'savings',
+  },
+  {
+    icon: 'drop',
+    title: 'Order fuel with a click',
+    text: 'Pick your gallons, choose your dock and place your order in seconds.',
+    screen: 'request',
+  },
+  {
+    icon: 'bell',
+    title: 'Real-time updates',
+    text: "Get a notification when we're on our way, so you're not left waiting at the dock.",
+    screen: 'orders',
+  },
+  {
+    icon: 'check',
+    title: 'Delivery confirmations',
+    text: 'Know your fuel has been delivered with a confirmation right in the app.',
+    screen: 'orders',
+  },
+  {
+    icon: 'receipt',
+    title: 'View deliveries & balances',
+    text: 'Your complete order history and any outstanding balances, whenever you need them.',
+    screen: 'paid',
+  },
+  {
+    icon: 'card',
+    title: 'Pay directly in the app',
+    text: 'Secure payments through QuickBooks. Fast, easy and no paperwork.',
+    screen: 'paid',
+  },
+] as const;
+
+// From the App Store listing (reference/app-store/itunes-lookup.json).
+const details = [
+  {
+    title: "Get notified when we're nearby",
+    text: "When we schedule a route near your dock, you get a notification. Open the app, confirm how much fuel you want, and you're on the list. Not interested this time? Decline just as quickly.",
+  },
+  {
+    title: 'Track, change or cancel your order',
+    text: 'Watch your delivery move from placed, to confirmed, to out for delivery, to delivered. Need a different amount or day? Change it from the app while the order is with our office.',
+  },
+  {
+    title: 'Set up your boat once',
+    text: "Save your dock location on the map, your boat's details and tank size, and future orders take seconds. Several boats? Order for any or all of them at once.",
+  },
+  {
+    title: 'Security',
+    text: 'Sign in with your phone number and a code we text you, then a 4-digit PIN. Optionally lock the app behind Face ID or Touch ID.',
+  },
+];
+
+// Wording follows the app's own Referral screen.
+const referralTerms = `${app.referral.terms} New Blackfin customers only.`;
+const referralSteps = [
+  {
+    title: 'Share your code',
+    text: 'Open the Referral tab in the app and send your referral code to friends with a boat who are new to Blackfin.',
+  },
+  {
+    title: 'They sign up & fuel up',
+    text: 'Your friend registers with your code and takes their first delivery.',
+  },
+  {
+    title: `You both get ${app.referral.amount} in ${app.referral.credit}`,
+    text: `Once their first delivery completes, you each earn ${app.referral.amount} in fuel credits.`,
+  },
+];
+
+const setupSteps = [
+  { icon: 'download', title: 'Download the app', text: 'Free on the App Store and Google Play.' },
+  { icon: 'map-pin', title: 'Add your boat and dock', text: 'Save your location and dock notes once so every order is quick.' },
+  { icon: 'drop', title: 'Order your fuel', text: "Choose your gallons and we'll add you to the next route through your area." },
+  { icon: 'card', title: 'Pay in the app', text: 'Your invoice arrives after delivery, and you can pay it right from your phone.' },
+] as const;
+
+const heroFacts = [
+  { value: 'Free', label: 'iPhone & Android' },
+  { value: app.referral.amount, label: 'Each, when you refer a friend' },
+  { value: '04', label: 'Steps to get set up' },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MobileApplication',
+  name: app.name,
+  operatingSystem: 'iOS, Android',
+  applicationCategory: 'BusinessApplication',
+  description,
+  url: `${site.url}${app.page}`,
+  installUrl: [app.appStoreUrl, app.playUrl],
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  publisher: { '@id': `${site.url}/#organization` },
+};
+---
+
+<BaseLayout
+  title="Marine Fuel Delivery App for iPhone and Android"
+  description={description}
+  promo={false}
+  jsonLd={jsonLd}
+  breadcrumbs={[{ name: 'The App', href: '/app/' }]}
+>
+  <!-- ============ HERO ============ -->
+  <AppHero
+    eyebrow="The Blackfin Fuels App"
+    title="The easiest way"
+    accent="to get fuel."
+    lede="Order fuel to your dock in a few taps, compare live marina prices, get updates when we're on the way, and pay your invoices, all from your phone. It's the fastest way to get on our route and where you'll find our best pricing."
+    note="Free for iPhone and Android."
+    facts={heroFacts}
+  />
+
+  <!-- ============ FEATURE TOUR: sticky phone swaps screens ============ -->
+  <section class="band band--base" id="features" aria-labelledby="features-title">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">What the app does</p>
+          <h2 id="features-title">From your order to your invoice, in one place.</h2>
+        </div>
+        <p class="lede" data-reveal>No calls to schedule and no waiting on paperwork. Everything about your fuel deliveries lives in the app.</p>
+      </header>
+      <FeatureTour features={[...features]} />
+    </div>
+  </section>
+
+  <!-- ============ ALSO IN THE APP: sticky copy beside ruled rows ============ -->
+  <section class="band band--raised" id="details" aria-labelledby="details-title">
+    <div class="container details">
+      <div class="details__copy" data-reveal>
+        <p class="eyebrow">Also in the app</p>
+        <h2 id="details-title">Set up once. Orders take seconds.</h2>
+      </div>
+      <ol class="details__list" role="list" data-reveal-group>
+        {
+          details.map((item, i) => (
+            <li class="details__item" data-reveal>
+              <span class="details__num numeral" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <div>
+                <h3 class="details__title">{item.title}</h3>
+                <p>{item.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ REFERRAL: phone turns as you scroll ============ -->
+  <section class="band band--deep referral" id="referral" aria-labelledby="referral-title">
+    <div class="container referral__grid">
+      <figure class="referral__visual">
+        <span class="referral__ghost numeral" aria-hidden="true">$25</span>
+        <div class="referral__phone" data-float>
+          <PhoneFrame
+            src={referralScreen}
+            alt="Referral Program screen: Give $25, Get $25, a referral code with Copy and Share buttons, and the three How it works steps"
+            width="min(64vw, 18.5rem)"
+          />
+        </div>
+        <div class="referral__floor" aria-hidden="true"></div>
+        <figcaption class="referral__caption">Screens show sample data.</figcaption>
+      </figure>
+
+      <div class="referral__copy">
+        <div data-reveal>
+          <p class="eyebrow">Referral program</p>
+          <p class="referral__amount numeral">{app.referral.amount}<span>+</span>{app.referral.amount}</p>
+          <h2 id="referral-title">{app.referral.headline}</h2>
+          <p class="referral__sub">Refer a fellow boater. You both get {app.referral.amount}.</p>
+          <p class="lede">Know someone who's tired of the marina fuel dock? {referralTerms}</p>
+        </div>
+
+        <ol class="referral__steps" role="list" data-reveal-group>
+          {
+            referralSteps.map((step, i) => (
+              <li class="referral__step" data-reveal>
+                <span class="referral__num numeral" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 class="referral__title">{step.title}</h3>
+                  <p>{step.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="referral__cta" data-reveal>
+          <Button data-open-app-promo size="lg">Claim your {app.referral.amount}</Button>
+          <StoreBadges placement="app-referral" size="sm" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DOWNLOAD: set-up steps hinge up ============ -->
+  <section class="band band--glow download" id="download" aria-labelledby="download-title">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">Get started</p>
+          <h2 id="download-title">Download the Blackfin Fuels app.</h2>
+        </div>
+        <p class="lede" data-reveal>Make your next fuel delivery easier. Set up once, then order whenever the tank gets low.</p>
+      </header>
+
+      <ol class="setup" role="list" data-3d="pop-group">
+        {
+          setupSteps.map((step, i) => (
+            <li class="setup__step">
+              <div class="setup__top">
+                <span class="setup__num numeral">0{i + 1}</span>
+                <span class="setup__icon">
+                  <Icon name={step.icon} size={22} />
+                </span>
+              </div>
+              <h3 class="setup__title">{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="get" data-reveal>
+        <div class="get__stores">
+          <p class="get__label">Free on both stores</p>
+          <StoreBadges placement="app-download" size="lg" />
+          <p class="get__phone">
+            Prefer to order by phone? Call <a href={contact.phoneHref}>{contact.phoneDisplay}</a>.
+          </p>
+        </div>
+        <div class="get__scan">
+          <ScanCard source="app-page" size={132} />
+        </div>
+      </div>
+
+      <aside class="webnote" aria-labelledby="webnote-title" data-reveal>
+        <span class="webnote__icon">
+          <Icon name="smartphone" size={24} />
+        </span>
+        <div class="webnote__copy">
+          <h3 id="webnote-title" class="webnote__title">Booked on the website? Track it in the app.</h3>
+          <p>Deliveries booked on our website show up in the app too, so you can follow the order and pay the invoice from your phone.</p>
+        </div>
+        <Button href={ORDER_URL} variant="ghost">Book on the website</Button>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ----- section bands (same rhythm as the home page) ----- */
+  .band {
+    padding-block: var(--section-pad);
+  }
+
+  .band--base {
+    background:
+      radial-gradient(70% 40% at 80% 20%, rgb(55 138 221 / 0.1), transparent 70%),
+      var(--navy-900);
+  }
+
+  .band--raised {
+    background: linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .band--deep {
+    background: linear-gradient(180deg, var(--ink), var(--abyss));
+    border-bottom: 1px solid var(--line);
+  }
+
+  .band--glow {
+    isolation: isolate;
+    overflow: clip;
+    background:
+      radial-gradient(70% 80% at 10% 100%, rgb(55 138 221 / 0.3), transparent 68%),
+      linear-gradient(180deg, var(--navy-900), #0a2038);
+  }
+
+  /* ----- headers ----- */
+  .head {
+    margin-bottom: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+
+  .head > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  @media (min-width: 60em) {
+    .head--split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+      align-items: end;
+    }
+  }
+
+  @media (max-width: 59.99em) {
+    .head--split > :global(.lede) {
+      margin-top: 1.25rem;
+    }
+  }
+
+  /* ----- also in the app ----- */
+  .details {
+    display: grid;
+    gap: 3rem;
+  }
+
+  .details__copy > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .details__copy h2 {
+    max-width: 12ch;
+  }
+
+  @media (min-width: 62em) {
+    .details {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .details__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .details__list {
+    display: grid;
+    margin: 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .details__item {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: 1.25rem;
+    padding-block: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .details__num {
+    font-size: var(--step-3);
+    color: var(--accent);
+  }
+
+  .details__title {
+    font-size: var(--step-2);
+  }
+
+  .details__item p {
+    margin-top: 0.7rem;
+    max-width: 36em;
+    line-height: 1.7;
+    color: var(--text-muted);
+  }
+
+  /* ----- referral ----- */
+  .referral {
+    overflow: clip;
+  }
+
+  .referral__grid {
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5.5rem);
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .referral__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+  }
+
+  .referral__visual {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    margin: 0;
+    padding-top: clamp(1rem, 3vw, 3rem);
+    perspective: 1500px;
+  }
+
+  .referral__ghost {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    translate: -50% 0;
+    font-size: clamp(7.38rem, 3.75rem + 10.88vw, 14rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .referral__phone {
+    position: relative;
+    z-index: 1;
+    transform-style: preserve-3d;
+  }
+
+  .referral__floor {
+    width: 70%;
+    height: 3rem;
+    margin-top: -1.5rem;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.3), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .referral__caption {
+    margin-top: 0.5rem;
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .referral__copy > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .referral__amount {
+    font-size: clamp(3.28rem, 1.5rem + 5.44vw, 5.6rem);
+    line-height: 0.85;
+    color: var(--white);
+  }
+
+  .referral__amount span {
+    margin-inline: 0.12em;
+    color: var(--accent);
+  }
+
+  .referral__sub {
+    font-size: var(--step-1);
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .referral__steps {
+    display: grid;
+    margin: 2.25rem 0 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .referral__step {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 1.1rem;
+    align-items: start;
+    padding-block: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .referral__num {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: var(--step-0);
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .referral__title {
+    padding-top: 0.35rem;
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  .referral__step p {
+    margin-top: 0.35rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  .referral__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 1.75rem;
+    margin-top: 2.25rem;
+  }
+
+  @media (max-width: 59.99em) {
+    .referral__visual {
+      order: 2;
+    }
+  }
+
+  /* ----- set-up steps ----- */
+  .setup {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  @media (min-width: 40em) {
+    .setup {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 62em) {
+    .setup {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .setup__step {
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .setup__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .setup__num {
+    font-size: var(--step-4);
+    color: var(--accent);
+  }
+
+  .setup__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .setup__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+
+  .setup__step p {
+    margin-top: 0.75rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  /* ----- get the app ----- */
+  .get {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.4), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 60em) {
+    .get {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 4rem;
+    }
+    .get__scan {
+      padding-left: 3rem;
+      border-left: 1px solid var(--line-strong);
+    }
+  }
+
+  /* ScanCard hides itself on phones and tablets; drop its empty column too. */
+  @media (max-width: 59.99em) {
+    .get__scan {
+      display: none;
+    }
+  }
+
+  :global(html[data-platform='ios']) .get__scan,
+  :global(html[data-platform='android']) .get__scan {
+    display: none;
+  }
+
+  .get__stores > * + * {
+    margin-top: 1.25rem;
+  }
+
+  .get__label {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--white);
+  }
+
+  .get__phone {
+    color: var(--text);
+    opacity: 0.88;
+  }
+
+  .get__phone a {
+    display: inline-block;
+    padding-block: 0.65rem;
+    font-weight: 700;
+    color: var(--accent-strong);
+    white-space: nowrap;
+  }
+
+  .get__scan :global(.scan) {
+    max-width: 22rem;
+  }
+
+  .get__scan :global(.scan__text) {
+    color: var(--text);
+    opacity: 0.85;
+  }
+
+  /* ----- website bookings note ----- */
+  .webnote {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+    margin-top: 1.25rem;
+    padding: clamp(1.4rem, 1rem + 1.5vw, 2.25rem);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: rgb(9 23 36 / 0.6);
+  }
+
+  .webnote__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    background: rgb(95 175 255 / 0.1);
+    border-radius: var(--radius-sm);
+  }
+
+  .webnote__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .webnote__copy p {
+    margin-top: 0.4rem;
+    max-width: 44em;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  .webnote :global(.btn) {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  @media (min-width: 48em) {
+    .webnote {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
+    .webnote :global(.btn) {
+      grid-column: auto;
+    }
+  }
+</style>

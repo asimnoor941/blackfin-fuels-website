@@ -1,0 +1,382 @@
+---
+/**
+ * Pricing: today's live Rec 90 price is the centrepiece (PriceTag, shown only
+ * when /api/price answers). When there is no live price the board shows the
+ * app pointer instead, so the page always looks complete. 3D effects follow
+ * the scroll: tilt (photo), flip (figure rows), turn (phone).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceHero from '../components/service/ServiceHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Button from '../components/Button.astro';
+import Photo from '../components/Photo.astro';
+import PriceTag from '../components/PriceTag.astro';
+import StoreBadges from '../components/StoreBadges.astro';
+import PhoneFrame from '../components/PhoneFrame.astro';
+import { app, ORDER_URL } from '../data/site';
+import '../components/service/service.css';
+
+import nozzle from '../assets/photos/nozzle-closeup.jpg';
+import screenHome from '../assets/app/home-savings.png';
+
+const points = ['No Delivery Fee', 'Prompt Delivery', 'Competitive Prices', 'Updated Weekly'];
+const flow = ['Compare prices', 'Order', 'Track', 'Pay'];
+const figures = [
+  { value: '$0', label: 'Delivery Fee', note: 'No hidden charges: the price you’re quoted is the price you pay.' },
+  { value: 'Weekly', label: 'Price Updates', note: 'Our pricing is refreshed weekly so you’re always getting a competitive rate.' },
+];
+---
+
+<BaseLayout
+  title="Pricing: No Delivery Fee, Updated Weekly"
+  description="No delivery fee, prompt delivery and competitive pricing updated weekly. Get the fuel you need delivered directly to your vessel and skip the marina lines."
+  breadcrumbs={[{ name: 'Pricing', href: '/pricing/' }]}
+>
+  <!-- ============ HERO: today's price board ============ -->
+  <ServiceHero
+    eyebrow="Our Pricing"
+    title='Pricing<span class="accent">with no delivery fee.</span>'
+    lede="Why overpay at the marina when you can get the fuel you need delivered directly to your vessel with no additional delivery fees? You won't have to wait in long lines at the marina pumps, and with our competitive pricing that is updated weekly, we can guarantee you will never overpay compared to other locations."
+  >
+    <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+
+    <ul class="pr-points" role="list" slot="meta">
+      {points.map((point) => <li class="tag">{point}</li>)}
+    </ul>
+
+    <div slot="aside" class="board svc-card">
+      <div class="board__now">
+        <PriceTag size="lg" class="board__price" />
+        <div class="board__fallback" data-price-missing>
+          <p class="eyebrow eyebrow--plain">Daily Prices</p>
+          <p class="board__fallback-title">Today’s price is in the app</p>
+          <p class="muted">Download the app to see our daily prices and your local marina prices.</p>
+          <StoreBadges placement="pricing-board" size="sm" />
+        </div>
+      </div>
+      <dl class="board__rows">
+        <div><dt class="svc-label">Delivery fee</dt><dd class="numeral">$0</dd></div>
+        <div><dt class="svc-label">Price updates</dt><dd class="numeral">Weekly</dd></div>
+        <div><dt class="svc-label">Fuel</dt><dd class="numeral">Rec 90</dd></div>
+      </dl>
+    </div>
+  </ServiceHero>
+
+  <!-- ============ WHAT YOU PAY ============ -->
+  <section class="svc-band svc-band--base pr-pay">
+    <div class="container pr-pay__grid">
+      <div class="pr-pay__aside">
+        <div data-reveal>
+          <p class="eyebrow">What You Pay</p>
+          <h2 class="pr-pay__title">The price you’re quoted is the price you pay</h2>
+        </div>
+        <div class="pr-pay__photo" data-3d="tilt" data-3d-strength="0.7">
+          <Photo
+            src={nozzle}
+            alt="Red fuel nozzle in a boat's fuel fill at a dock, with an absorbent pad wrapped around it"
+            ratio="4 / 3"
+            position="48% 60%"
+            reveal={false}
+            sizes="(min-width: 62em) 40vw, 92vw"
+          />
+        </div>
+      </div>
+
+      <ol class="pr-figures" role="list" data-3d="pop-group">
+        {
+          figures.map((f, i) => (
+            <li class="figure">
+              <span class="figure__index svc-outline" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <p class="figure__value numeral">{f.value}</p>
+              <h3 class="figure__label">{f.label}</h3>
+              <p class="figure__note">{f.note}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ DAILY PRICES IN THE APP ============ -->
+  <section class="svc-band svc-band--raised pr-app">
+    <div class="container pr-app__grid">
+      <div class="pr-app__copy">
+        <div data-reveal>
+          <p class="eyebrow">Daily Prices</p>
+          <h2 class="pr-app__title">Download Our App</h2>
+          <p class="lede">Download the app to see our daily prices and your local marina prices.</p>
+        </div>
+        <ol class="flow" role="list" data-reveal>
+          {
+            flow.map((step, i) => (
+              <li class="flow__step">
+                <span class="flow__num numeral" aria-hidden="true">{`0${i + 1}`}</span>
+                <span class="flow__label display">{step}</span>
+              </li>
+            ))
+          }
+        </ol>
+        <div class="pr-app__get" data-reveal>
+          <StoreBadges placement="pricing" adaptive />
+          <Button href={app.page} variant="link" class="svc-tap">Get the app</Button>
+        </div>
+      </div>
+
+      <div class="pr-app__phone">
+        <div data-float>
+          <PhoneFrame src={screenHome} alt="Blackfin Fuels app home screen comparing our price with nearby marina prices" width="min(64vw, 19rem)" />
+        </div>
+        <p class="pr-app__note">Screens show sample data.</p>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Ready to Stop<br />Overpaying at the Marina?"
+    text="Rec 90 delivered to your dock, lift, or slip, with no delivery fee. Request a delivery and we'll confirm your scheduled window."
+  />
+</BaseLayout>
+
+<style>
+  .pr-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  /* ---------- price board ---------- */
+  .board {
+    padding: clamp(1.4rem, 1rem + 1.6vw, 2.25rem);
+    background:
+      radial-gradient(80% 70% at 100% 0%, rgb(95 175 255 / 0.32), transparent 62%),
+      linear-gradient(150deg, #134072, #0c2a4a 58%, #0a2038);
+  }
+
+  .board__now {
+    display: grid;
+    min-height: 13rem;
+    align-content: center;
+  }
+
+  .board__now > :global(*) {
+    grid-area: 1 / 1;
+  }
+
+  .board :global(.board__price) {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .board :global(.board__price .ptag__price) {
+    font-size: clamp(3.28rem, 1.5rem + 4.08vw, 4.9rem);
+  }
+
+  .board :global(.board__price .ptag__meta) {
+    color: var(--text-muted);
+  }
+
+  .board :global(.board__price .ptag__cta) {
+    min-height: 3.1rem;
+    margin-top: 0.5rem;
+    padding-inline: 1.4rem;
+  }
+
+  .board__fallback[hidden] {
+    display: none;
+  }
+
+  .board__fallback > :global(* + *) {
+    margin-top: 0.9rem;
+  }
+
+  .board__fallback-title {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .board__rows {
+    display: grid;
+    margin: clamp(1.5rem, 1rem + 1.5vw, 2.25rem) 0 0;
+  }
+
+  .board__rows > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.85rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .board__rows dd {
+    margin: 0;
+    font-size: var(--step-2);
+  }
+
+  /* ---------- what you pay ---------- */
+  .pr-pay__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .pr-pay__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .pr-pay__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .pr-pay__aside > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .pr-pay__title {
+    font-size: var(--step-4);
+    max-width: 13ch;
+  }
+
+  .pr-pay__photo {
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+
+  .pr-pay__photo :global(.photo) {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .pr-figures {
+    margin: 0;
+  }
+
+  .figure {
+    position: relative;
+    padding-block: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .figure:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .figure__index {
+    position: absolute;
+    top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    right: 0;
+    font-size: clamp(3.28rem, 1.88rem + 3.4vw, 5.6rem);
+  }
+
+  @media (max-width: 47.99em) {
+    .figure__index {
+      font-size: 3.5rem;
+    }
+  }
+
+  .figure__value {
+    position: relative;
+    font-size: var(--step-6);
+    line-height: 0.85;
+    color: var(--accent);
+  }
+
+  .figure__label {
+    margin-top: 1.4rem;
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .figure__note {
+    max-width: 26em;
+    margin-top: 0.6rem;
+    font-size: var(--step-1);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  /* ---------- app ---------- */
+  .pr-app__grid {
+    display: grid;
+    gap: 3.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .pr-app__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 4rem;
+    }
+  }
+
+  .pr-app__copy > :global(* + *) {
+    margin-top: 2.25rem;
+  }
+
+  .pr-app__copy > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .pr-app__title {
+    font-size: var(--step-5);
+    line-height: 0.9;
+    max-width: 10ch;
+  }
+
+  .flow__step {
+    display: flex;
+    align-items: baseline;
+    gap: clamp(1rem, 0.6rem + 2vw, 2rem);
+    padding-block: clamp(0.9rem, 0.7rem + 0.8vw, 1.3rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .flow__step:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .flow__num {
+    min-width: 2ch;
+    font-size: var(--step-1);
+    color: var(--accent);
+  }
+
+  .flow__label {
+    font-size: var(--step-3);
+  }
+
+  .pr-app__get {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.75rem;
+  }
+
+  .pr-app__phone {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    perspective: 1500px;
+  }
+
+  .pr-app__note {
+    margin-top: 2.5rem;
+    font-size: var(--step--2);
+    color: var(--text-faint);
+  }
+</style>

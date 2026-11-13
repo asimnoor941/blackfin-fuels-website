@@ -1,0 +1,129 @@
+---
+/**
+ * The opening block of a legal page, in the home page's language: eyebrow,
+ * large Anton <h1> and a hairline-ruled row of facts taken from the document.
+ * No photo and no motion.
+ *
+ *   <LegalHero title="Privacy Policy" facts={[{ label: 'Sections', value: '10' }]} />
+ *
+ * facts  [{ label, value, href? }] shown under the title.
+ * Provides the page's single <h1>. Must be the first thing in <main>.
+ */
+import Contours from '../Contours.astro';
+
+interface Fact {
+  label: string;
+  value: string;
+  href?: string;
+}
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  facts?: Fact[];
+}
+
+const { eyebrow = 'Legal', title, facts = [] } = Astro.props;
+---
+
+<section class="lhero">
+  <Contours class="lhero__lines" lines={14} />
+  <div class="container">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1 class="lhero__title" set:html={title} />
+    {
+      facts.length > 0 && (
+        <dl class="lhero__facts">
+          {facts.map((fact) => (
+            <div>
+              <dt>{fact.label}</dt>
+              <dd>{fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .lhero {
+    position: relative;
+    z-index: var(--z-content);
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.5rem, 0.9rem + 2.5vw, 3.3rem)) 0 clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 70% at 85% 0%, rgb(55 138 221 / 0.26), transparent 62%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 85%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lhero :global(.lhero__lines) {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: -1;
+    opacity: 0.35;
+  }
+
+  .lhero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.3rem, 0.9rem + 4.08vw, 4.9rem);
+    line-height: 0.9;
+    max-width: 14ch;
+  }
+
+  .lhero__facts {
+    display: grid;
+    margin: clamp(2rem, 1.25rem + 3vw, 3.5rem) 0 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .lhero__facts > div {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line-strong);
+    min-width: 0;
+  }
+
+  @media (min-width: 48em) {
+    .lhero__facts {
+      grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .lhero__facts > div {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 0;
+    }
+    .lhero__facts > div:first-child {
+      padding-left: 0;
+    }
+    .lhero__facts > div + div {
+      border-left: 1px solid var(--line);
+    }
+  }
+
+  .lhero__facts dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .lhero__facts dd {
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .lhero__facts a {
+    display: inline-block;
+    padding-block: 0.6rem;
+    margin-block: -0.6rem;
+    color: var(--accent);
+  }
+</style>

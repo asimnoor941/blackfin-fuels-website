@@ -1,0 +1,90 @@
+---
+/**
+ * An app screenshot inside a phone body drawn in CSS.
+ * Screenshots are the full-resolution ones from the App Store listing
+ * (src/assets/app/*.png, 1206x2622).
+ *
+ *   import referral from '../assets/app/referral.png';
+ *   <PhoneFrame src={referral} alt="Referral Program screen: Give $25, Get $25" />
+ *
+ * width  CSS width of the phone, e.g. "17rem" or "min(70vw, 19rem)".
+ * tilt   Degrees of 3D turn around the vertical axis (purely visual).
+ * crop   "full" shows the whole screen; "top" shows the top ~70% for tight spaces.
+ */
+import { Picture } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  width?: string;
+  tilt?: number;
+  crop?: 'full' | 'top';
+  eager?: boolean;
+  class?: string;
+}
+
+const { src, alt, width = '17rem', tilt = 0, crop = 'full', eager = false, class: className } = Astro.props;
+---
+
+<div class:list={['phone', `phone--${crop}`, className]} style={`--phone-w:${width};--phone-tilt:${tilt}deg`}>
+  <div class="phone__body">
+    <div class="phone__screen">
+      <Picture
+        src={src}
+        alt={alt}
+        formats={['avif', 'webp']}
+        widths={[300, 450, 600, 900, 1206]}
+        sizes={`(min-width: 60em) 24rem, 70vw`}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+  .phone {
+    width: var(--phone-w);
+    max-width: 100%;
+    perspective: 1400px;
+    filter: drop-shadow(0 40px 50px rgb(0 0 0 / 0.55));
+  }
+
+  .phone__body {
+    position: relative;
+    padding: calc(var(--phone-w) * 0.035);
+    border-radius: calc(var(--phone-w) * 0.165);
+    background: linear-gradient(145deg, #3a4654 0%, #10161d 22%, #05080b 60%, #2a3440 100%);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.14) inset,
+      0 0 0 1.5px #000;
+    transform: rotateY(var(--phone-tilt));
+    transform-style: preserve-3d;
+  }
+
+  .phone__screen {
+    overflow: hidden;
+    aspect-ratio: 1206 / 2622;
+    border-radius: calc(var(--phone-w) * 0.13);
+    background: #eef4fb;
+  }
+
+  .phone--top .phone__screen {
+    aspect-ratio: 1206 / 1840;
+  }
+
+  .phone__screen :global(picture) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .phone__screen :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0;
+  }
+</style>

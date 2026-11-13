@@ -1,0 +1,21 @@
+# Old URLs that the live WordPress site linked to or redirected. Keep them working.
+/about            /about-us/        301
+/about/           /about-us/        301
+/contact          /contact-us/      301
+/contact/         /contact-us/      301
+/request-fuel     /free-estimate/   301
+/request-fuel/    /free-estimate/   301
+/service-areas/cape-coral    /cape-coral/    301
+/service-areas/cape-coral/   /cape-coral/    301
+/service-areas/fort-myers    /fort-myers/    301
+/service-areas/fort-myers/   /fort-myers/    301
+/service-areas/punta-gorda   /punta-gorda/   301
+/service-areas/punta-gorda/  /punta-gorda/   301
+/service-areas/sarasota      /sarasota/      301
+/service-areas/sarasota/     /sarasota/      301
+/service-areas/bradenton     /bradenton/     301
+/service-areas/bradenton/    /bradenton/     301
+/hello-world      /                 301
+/hello-world/     /                 301
+/sitemap.xml      /sitemap-index.xml 301
+/sitemap_index.xml /sitemap-index.xml 301

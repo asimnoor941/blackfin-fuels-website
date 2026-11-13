@@ -1,0 +1,167 @@
+---
+/**
+ * The opening block of the support pages (FAQs, Contact, 404), drawn in the
+ * same language as the home hero: eyebrow, a large Anton <h1>, a lede beside
+ * the actions, and optional wide media below that lies tilted back and
+ * flattens as the page scrolls (data-3d="stage").
+ *
+ *   <SupportHero eyebrow="FAQs" title="Have Questions?" lede="...">
+ *     <Button href="/free-estimate/">Order Fuel</Button>          default slot: actions
+ *     <div slot="meta">...</div>                                 under the title row
+ *     <Fragment slot="media"><Photo ... /></Fragment>            wide media under the hero text
+ *   </SupportHero>
+ *
+ * Provides the page's single <h1>. Must be the first thing in <main>.
+ * tall   true to fill most of the first screen (404).
+ */
+import Contours from '../Contours.astro';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  tall?: boolean;
+  class?: string;
+}
+
+const { eyebrow, title, lede, tall = false, class: className } = Astro.props;
+const hasMedia = Astro.slots.has('media');
+---
+
+<section class:list={['shero', { 'shero--tall': tall, 'shero--media': hasMedia }, className]}>
+  <Contours class="shero__lines" lines={20} />
+  <div class="container shero__top">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="shero__title" set:html={title} />
+    {
+      (lede || Astro.slots.has('default')) && (
+        <div class="shero__row">
+          {lede && <p class="lede">{lede}</p>}
+          {Astro.slots.has('default') && (
+            <div class="cluster shero__actions">
+              <slot />
+            </div>
+          )}
+        </div>
+      )
+    }
+    {
+      Astro.slots.has('meta') && (
+        <div class="shero__meta">
+          <slot name="meta" />
+        </div>
+      )
+    }
+  </div>
+
+  {
+    hasMedia && (
+      <div class="container shero__stage-wrap">
+        <div class="shero__stage" data-3d="stage">
+          <slot name="media" />
+        </div>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .shero {
+    position: relative;
+    z-index: var(--z-content);
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .shero--tall {
+    display: grid;
+    align-items: center;
+    min-height: min(52rem, 92svh);
+    padding-top: calc(var(--header-h) + clamp(1.2rem, 0.6rem + 2vw, 2.48rem));
+  }
+
+  .shero :global(.shero__lines) {
+    position: absolute;
+    inset: 22% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.45;
+  }
+
+  .shero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.46rem, 0.9rem + 4.49vw, 5.88rem);
+    line-height: 0.9;
+    max-width: 15ch;
+  }
+
+  .shero__title :global(.accent) {
+    display: block;
+    color: var(--accent);
+  }
+
+  .shero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .shero__row :global(.lede) {
+    color: var(--text);
+    opacity: 0.86;
+    max-width: 34em;
+  }
+
+  @media (min-width: 60em) {
+    .shero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  .shero__meta {
+    margin-top: clamp(2rem, 1.25rem + 3vw, 3.5rem);
+  }
+
+  .shero__stage-wrap {
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    perspective: 1600px;
+  }
+
+  .shero__stage {
+    position: relative;
+    border-radius: var(--radius-lg);
+    /* Resting pose before any scroll, as on the home hero; motion.ts takes over on scroll. */
+    transform: perspective(1600px) rotateX(22deg) scale(0.88);
+    transform-origin: 50% 0%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shero__stage {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 47.99em) {
+    .shero__stage :global(.photo__media) {
+      aspect-ratio: 4 / 3 !important;
+    }
+  }
+
+  .shero__stage > :global(*) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 0 0 1px var(--line-strong);
+  }
+</style>
+

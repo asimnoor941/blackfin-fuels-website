@@ -1,0 +1,521 @@
+---
+/**
+ * "Need fuel?" pop-up shown shortly after a visitor arrives, so they can start a
+ * booking straight away instead of looking through the site. It shows today's
+ * live price, lets them pick their area and Fill to Full or an exact amount
+ * (the app's two choices), and sends them to the booking form with both filled in.
+ *
+ * When it opens by itself (only on pages whose layout has promo enabled):
+ *   4 seconds after the page loads, at most once per browser session, not for
+ *   7 days after "Just looking", and not for 14 days after a booking was sent.
+ *   The demo build (npm run build:demo) ignores the last two so every new visit shows it.
+ *   Never while a form field is focused or another dialog is open.
+ * Desktop: centred dialog. Phone: a card at the bottom that leaves the page usable
+ * (full-screen pop-ups on phones are penalised by Google).
+ *
+ * Any element with data-open-fuel-prompt opens it. ?fuel=1 opens it for testing,
+ * ?nopromo suppresses it.
+ */
+import Icon from './Icon.astro';
+import { contact, forms, orderAreas, ORDER_URL } from '../data/site';
+---
+
+<dialog class="fuel" id="fuel-prompt" aria-labelledby="fuel-title" closedby="any" data-fuel-prompt data-lenis-prevent>
+  <div class="fuel__panel">
+    <button class="fuel__close" type="button" data-fuel-close aria-label="Close">
+      <Icon name="close" size={20} />
+    </button>
+
+    <p class="eyebrow">Need fuel?</p>
+    <h2 class="fuel__title" id="fuel-title">We’ll bring it to your dock.</h2>
+
+    <p class="fuel__price" data-price-block hidden data-float-open>
+      <span class="fuel__dot" aria-hidden="true"></span>
+      Today’s Rec 90 <strong class="numeral"><span data-price>…</span><small>/gal</small></strong>
+      <span class="fuel__meta">All-in · $0 delivery</span>
+    </p>
+
+    <form class="fuel__form" action={ORDER_URL} method="get" data-fuel-form>
+      <label class="fuel__field">
+        <span>Where’s the boat?</span>
+        <span class="fuel__select">
+          <select name="area" required>
+            <option value="">Choose your area</option>
+            {orderAreas.map((area) => <option value={area}>{area}</option>)}
+          </select>
+          <Icon name="chevron-down" size={18} />
+        </span>
+      </label>
+
+      <fieldset class="fuel__gallons">
+        <legend>How much REC-90?</legend>
+        <div class="fuel__chips">
+          <label class="fuel__chip fuel__chip--wide">
+            <input type="radio" name="amount" value="fill" checked />
+            <span>Fill to Full</span>
+          </label>
+          <label class="fuel__chip fuel__chip--wide">
+            <input type="radio" name="amount" value="exact" />
+            <span>Exact amount</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <p class="fuel__error" data-fuel-error hidden>Choose your area to continue.</p>
+
+      <button class="fuel__go" type="submit">
+        Book delivery <Icon name="arrow-right" size={18} />
+      </button>
+    </form>
+
+    <div class="fuel__foot">
+      <a href={contact.phoneHref}><Icon name="phone" size={16} /> {contact.phoneDisplay}</a>
+      <button type="button" data-fuel-close>Just looking</button>
+    </div>
+    <p class="fuel__min">Exact amounts start at {forms.minGallons} gallons. No payment until after delivery.</p>
+  </div>
+</dialog>
+
+<style>
+  .fuel {
+    width: min(100% - 2rem, 30rem);
+    max-width: none;
+    max-height: min(100dvh - 2rem, 46rem);
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    color: var(--text);
+    background: transparent;
+    border: 0;
+  }
+
+  .fuel::backdrop {
+    background: rgb(4 11 18 / 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .fuel[open] {
+    animation: fuel-in var(--dur-3) var(--ease-out);
+  }
+
+  @keyframes fuel-in {
+    from {
+      opacity: 0;
+      transform: translateY(1rem) scale(0.98);
+    }
+  }
+
+  .fuel__panel {
+    position: relative;
+    max-height: inherit;
+    overflow-y: auto;
+    padding: clamp(1.4rem, 1rem + 1.5vw, 2rem);
+    background:
+      radial-gradient(110% 70% at 100% 0%, rgb(55 138 221 / 0.32), transparent 60%),
+      linear-gradient(165deg, #10304f, var(--navy-800) 60%, var(--navy-900));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .fuel__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .fuel__close:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .fuel__title {
+    margin-top: 0.75rem;
+    padding-right: 2.5rem;
+    font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+  }
+
+  .fuel__price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+    margin-top: 1rem;
+    padding: 0.6rem 0.9rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgb(9 23 36 / 0.55);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+  }
+
+  .fuel__price[hidden] {
+    display: none;
+  }
+
+  .fuel__price strong {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .fuel__price small {
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+
+  .fuel__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: #3ddc84;
+    border-radius: 50%;
+  }
+
+  .fuel__meta {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+  }
+
+  .fuel__form {
+    display: grid;
+    gap: 1.1rem;
+    margin-top: 1.4rem;
+  }
+
+  .fuel__field,
+  .fuel__gallons {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .fuel__field > span:first-child,
+  .fuel__gallons legend {
+    padding: 0;
+    margin-bottom: 0.45rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .fuel__select {
+    position: relative;
+  }
+
+  .fuel__select select {
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.7rem 2.5rem 0.7rem 0.95rem;
+    font-size: 1rem;
+    color: var(--text);
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .fuel__select select option {
+    color: #0c1e2f;
+  }
+
+  .fuel__select select:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgb(95 175 255 / 0.25);
+  }
+
+  .fuel__select :global(.icon) {
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    pointer-events: none;
+  }
+
+  .fuel__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .fuel__chip {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .fuel__chip input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .fuel__chip span {
+    display: inline-grid;
+    place-items: center;
+    min-width: 3.6rem;
+    min-height: 2.9rem;
+    padding: 0.4rem 0.9rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    transition:
+      background-color var(--dur-1) ease,
+      color var(--dur-1) ease;
+  }
+
+  .fuel__chip--wide span {
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+  }
+
+  .fuel__chip input:checked + span {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .fuel__chip input:focus-visible + span {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .fuel__error {
+    font-size: var(--step--2);
+    font-weight: 600;
+    color: #ff9a9a;
+  }
+
+  .fuel__go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.5rem;
+    font-size: var(--step-0);
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: var(--radius);
+    box-shadow: 0 14px 34px -14px var(--glow);
+  }
+
+  .fuel__go:hover {
+    background: var(--accent-strong);
+  }
+
+  .fuel__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-top: 1rem;
+  }
+
+  .fuel__foot a,
+  .fuel__foot button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .fuel__foot a :global(.icon) {
+    color: var(--accent);
+  }
+
+  .fuel__foot button {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .fuel__foot a:hover,
+  .fuel__foot button:hover {
+    color: var(--text);
+  }
+
+  .fuel__min {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+  }
+
+  /* Phones: opened by itself it is a card at the bottom, the page stays usable. */
+  @media (max-width: 47.99em) {
+    .fuel:not(:modal) {
+      position: fixed;
+      inset: auto 0.6rem calc(0.6rem + env(safe-area-inset-bottom)) 0.6rem;
+      z-index: var(--z-promo);
+      width: auto;
+      max-height: 70dvh;
+      margin: 0;
+    }
+
+    .fuel:not(:modal) .fuel__panel {
+      max-height: 70dvh;
+      padding: 1.1rem 1.1rem 0.9rem;
+    }
+
+    .fuel:not(:modal) .fuel__title {
+      font-size: 1.6rem;
+    }
+
+    .fuel:not(:modal) .fuel__form {
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .fuel:not(:modal) .fuel__min {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { paintPrices } from '../scripts/price';
+  import { track } from '../scripts/track';
+
+  const DAY = 864e5;
+  const KEY_DISMISSED = 'bf:fuel:dismissed';
+  const KEY_SESSION = 'bf:fuel:shown';
+  const KEY_BOOKED = 'bf:booked';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-fuel-prompt]');
+  const read = (store: Storage, key: string) => {
+    try {
+      return store.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+  const write = (store: Storage, key: string) => {
+    try {
+      store.setItem(key, String(Date.now()));
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
+  if (dialog) {
+    const wide = window.matchMedia('(min-width: 48em)');
+    const form = dialog.querySelector<HTMLFormElement>('[data-fuel-form]')!;
+    const error = dialog.querySelector<HTMLElement>('[data-fuel-error]')!;
+    let modal = true;
+    let painted = false;
+
+    const open = (trigger: string, manual: boolean) => {
+      if (dialog.open) return;
+      const other = document.querySelector<HTMLDialogElement>('dialog[open]');
+      if (other) {
+        if (!manual) return;
+        other.close();
+      }
+      if (!painted) {
+        painted = true;
+        paintPrices();
+      }
+      modal = manual || wide.matches;
+      if (modal) {
+        dialog.showModal();
+        window.__lenis?.stop();
+      } else {
+        const before = document.activeElement;
+        dialog.show();
+        if (before instanceof HTMLElement && before !== document.body) before.focus({ preventScroll: true });
+        else (document.activeElement as HTMLElement | null)?.blur();
+      }
+      write(sessionStorage, KEY_SESSION);
+      track('fuel_prompt_view', { trigger, mode: modal ? 'modal' : 'card' });
+    };
+
+    dialog.addEventListener('close', () => {
+      if (modal) window.__lenis?.start();
+      if (dialog.returnValue !== 'booking') {
+        write(localStorage, KEY_DISMISSED);
+        track('fuel_prompt_dismiss', {});
+      }
+      dialog.returnValue = '';
+    });
+
+    dialog.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.target.closest('[data-fuel-close]')) dialog.close('dismissed');
+      else if (event.target === dialog && modal) dialog.close('dismissed');
+    });
+
+    form.addEventListener('change', () => (error.hidden = true));
+    form.addEventListener('submit', (event) => {
+      const data = new FormData(form);
+      if (!data.get('area')) {
+        event.preventDefault();
+        error.hidden = false;
+        form.querySelector('select')?.focus();
+        return;
+      }
+      track('fuel_prompt_book', { area: String(data.get('area')), amount: String(data.get('amount') ?? '') });
+      dialog.close('booking');
+      // The form submits as a normal GET to the booking page, which reads ?area= and ?amount=.
+    });
+
+    document.addEventListener('click', (event) => {
+      if (event.target instanceof Element && event.target.closest('[data-open-fuel-prompt]')) {
+        event.preventDefault();
+        open('manual', true);
+      }
+    });
+
+    wide.addEventListener('change', () => {
+      if (dialog.open && !modal) dialog.close('dismissed');
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const demo = import.meta.env.PUBLIC_DEMO === '1';
+    const dismissed = demo ? 0 : Number(read(localStorage, KEY_DISMISSED)) || 0;
+    const booked = demo ? 0 : Number(read(localStorage, KEY_BOOKED)) || 0;
+    const eligible =
+      document.body.dataset.promo === 'auto' &&
+      !params.has('nopromo') &&
+      !read(sessionStorage, KEY_SESSION) &&
+      Date.now() - booked > 14 * DAY &&
+      Date.now() - dismissed > 7 * DAY;
+
+    const busy = () => {
+      const active = document.activeElement;
+      return (
+        document.hidden ||
+        document.querySelector('dialog[open]') !== null ||
+        (active instanceof HTMLElement && active.matches('input, textarea, select, iframe'))
+      );
+    };
+
+    if (params.has('fuel')) open('forced', true);
+    else if (eligible) {
+      const tryOpen = () => {
+        if (busy()) setTimeout(tryOpen, 3000);
+        else open('arrival', false);
+      };
+      setTimeout(tryOpen, 4000);
+    }
+  }
+</script>

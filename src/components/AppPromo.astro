@@ -1,0 +1,537 @@
+---
+/**
+ * The app referral pop-up: "Claim your $25 fuel credit".
+ *
+ * One <dialog>, three presentations:
+ *   - desktop, automatic or manual: centred modal with the referral screen, QR code and both store badges
+ *   - phone, automatic: a compact, non-modal card at the bottom of the screen that never blocks the page
+ *     (full-screen pop-ups on phones are penalised by Google and annoy visitors)
+ *   - phone, manual (the visitor tapped a "Give $25. Get $25." link): a modal bottom sheet
+ *
+ * When it opens by itself (only on pages whose layout has promo enabled):
+ *   - after the visitor has scrolled 40% of the page and spent 10 s on it, or
+ *   - after 35 s on the page, or
+ *   - on desktop, when the pointer leaves through the top of the window after 8 s
+ * and never more than once per browser session, not for 14 days after it was
+ * dismissed, and not for 90 days after a store badge was clicked.
+ * It never opens while a form field is focused or another dialog is open.
+ *
+ * Any element with data-open-app-promo opens it on click, ignoring those limits.
+ * For testing, add ?promo=1 to any URL to open it immediately.
+ *
+ * The offer wording follows the app's own Referral screen. Do not change the
+ * amounts or drop the conditions without the owner's sign-off.
+ */
+import { Picture } from 'astro:assets';
+import referral from '../assets/app/referral.png';
+import Icon from './Icon.astro';
+import StoreBadges from './StoreBadges.astro';
+import QrCode from './QrCode.astro';
+import { app } from '../data/site';
+---
+
+<dialog
+  class="promo"
+  id="app-promo"
+  aria-labelledby="app-promo-title"
+  aria-describedby="app-promo-text"
+  closedby="any"
+  data-app-promo
+  data-lenis-prevent
+>
+  <div class="promo__panel">
+    <button class="promo__close" type="button" data-promo-close aria-label="Close this offer">
+      <Icon name="close" size={22} />
+    </button>
+
+    <div class="promo__visual" aria-hidden="true">
+      <div class="promo__phone" data-float-open>
+        <Picture src={referral} alt="" formats={['avif', 'webp']} widths={[360, 540, 760]} sizes="19rem" loading="lazy" />
+      </div>
+    </div>
+
+    <div class="promo__content">
+      <p class="tag promo__tag"><Icon name="gift" size={15} />Give {app.referral.amount} · Get {app.referral.amount}</p>
+      <h2 class="promo__title" id="app-promo-title">Claim your {app.referral.amount} fuel credit</h2>
+      <p class="promo__text" id="app-promo-text">
+        Download the Blackfin Fuels app and refer a fellow boater. When they complete their first confirmed delivery, you each get
+        {app.referral.amount} in fuel credit.
+      </p>
+
+      <ol class="promo__steps" role="list">
+        <li><span class="promo__num numeral">1</span>Download the app</li>
+        <li><span class="promo__num numeral">2</span>Share your referral code</li>
+        <li><span class="promo__num numeral">3</span>You both get {app.referral.amount}</li>
+      </ol>
+
+      <div class="promo__get">
+        <div class="promo__qr">
+          <QrCode source="promo" size={104} />
+          <p>Scan with your phone camera to download</p>
+        </div>
+        <StoreBadges placement="promo" size="md" adaptive />
+      </div>
+
+      <p class="promo__fine">
+        Your friend must be a new Blackfin customer. Credit is added after their first confirmed delivery. The app is free for iPhone
+        and Android.
+      </p>
+      <button class="promo__later" type="button" data-promo-close>Not now</button>
+    </div>
+  </div>
+</dialog>
+<p class="visually-hidden" role="status" data-promo-status></p>
+
+<style>
+  .promo {
+    width: min(100% - 2rem, 58rem);
+    max-width: none;
+    max-height: min(100dvh - 2rem, 44rem);
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    color: var(--text);
+    background: transparent;
+    border: 0;
+  }
+
+  .promo::backdrop {
+    background: rgb(4 11 18 / 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .promo[open] {
+    animation: promo-in var(--dur-3) var(--ease-out);
+  }
+
+  .promo[open]::backdrop {
+    animation: promo-fade var(--dur-2) ease;
+  }
+
+  @keyframes promo-in {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem) scale(0.97);
+    }
+  }
+
+  @keyframes promo-fade {
+    from {
+      opacity: 0;
+    }
+  }
+
+  .promo__panel {
+    position: relative;
+    display: grid;
+    overflow: hidden;
+    max-height: inherit;
+    background:
+      radial-gradient(120% 80% at 100% 0%, rgb(55 138 221 / 0.3), transparent 60%),
+      linear-gradient(160deg, #10304f, var(--navy-800) 55%, var(--navy-900));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .promo__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text);
+    background: rgb(7 17 25 / 0.5);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .promo__close:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .promo__visual {
+    display: none;
+  }
+
+  .promo__content {
+    padding: clamp(1.5rem, 1.1rem + 1.6vw, 2.75rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .promo__tag :global(.icon) {
+    color: var(--accent);
+  }
+
+  .promo__title {
+    margin-top: 1rem;
+    font-size: clamp(2rem, 1.4rem + 2vw, 3.1rem);
+    max-width: 14ch;
+  }
+
+  .promo__text {
+    margin-top: 1rem;
+    font-size: var(--step-0);
+    line-height: 1.6;
+    color: var(--text);
+    opacity: 0.9;
+    max-width: 34em;
+  }
+
+  .promo__steps {
+    display: grid;
+    gap: 0.6rem;
+    margin: 1.4rem 0 0;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .promo__steps li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .promo__num {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .promo__get {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 1.75rem;
+    margin-top: 1.6rem;
+  }
+
+  .promo__qr {
+    display: none;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .promo__qr p {
+    max-width: 9.5rem;
+    font-size: var(--step--2);
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  .promo__fine {
+    margin-top: 1.4rem;
+    font-size: var(--step--2);
+    line-height: 1.55;
+    color: var(--text-muted);
+    max-width: 44em;
+  }
+
+  .promo__later {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .promo__later:hover {
+    color: var(--text);
+  }
+
+  /* ----- desktop: two columns with the referral screen ----- */
+  @media (min-width: 48em) {
+    .promo__panel {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .promo__visual {
+      position: relative;
+      display: block;
+      min-height: 30rem;
+      overflow: hidden;
+      background:
+        radial-gradient(80% 60% at 50% 30%, rgb(95 175 255 / 0.5), transparent 70%),
+        linear-gradient(180deg, #1b4a7a, #0d2a47);
+      border-right: 1px solid var(--line);
+    }
+
+    .promo__phone {
+      position: absolute;
+      top: 2.5rem;
+      left: 50%;
+      width: 15.5rem;
+      padding: 0.55rem 0.55rem 0;
+      background: linear-gradient(145deg, #3a4654, #0b1016 30%, #05080b);
+      border-radius: 2.5rem 2.5rem 0 0;
+      box-shadow:
+        0 0 0 1px rgb(255 255 255 / 0.16) inset,
+        0 40px 60px -20px rgb(0 0 0 / 0.7);
+      transform: translateX(-50%) rotate(-3deg);
+      transform-origin: 50% 100%;
+    }
+
+    .promo__phone :global(img) {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 2rem 2rem 0 0;
+    }
+
+    .promo__qr {
+      display: flex;
+    }
+
+    .promo__steps {
+      grid-auto-flow: column;
+      gap: 1rem;
+    }
+  }
+
+  /* ----- phones: bottom sheet ----- */
+  @media (max-width: 47.99em) {
+    .promo {
+      width: 100%;
+      max-height: 86dvh;
+      margin: auto 0 0;
+    }
+
+    .promo__panel {
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      border-bottom: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .promo[open] {
+      animation-name: promo-up;
+    }
+
+    @keyframes promo-up {
+      from {
+        transform: translateY(100%);
+      }
+    }
+
+    .promo__title {
+      font-size: var(--step-3);
+      padding-right: 2.5rem;
+    }
+
+    /* Opened by itself: a compact card that leaves the page usable. */
+    .promo:not(:modal) {
+      position: fixed;
+      inset: auto 0.6rem calc(0.6rem + env(safe-area-inset-bottom)) 0.6rem;
+      z-index: var(--z-promo);
+      width: auto;
+      max-height: none;
+    }
+
+    .promo:not(:modal) .promo__panel {
+      padding-bottom: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+    }
+
+    .promo:not(:modal) .promo__content {
+      padding: 1.1rem 1.15rem 0.9rem;
+    }
+
+    .promo:not(:modal) .promo__tag,
+    .promo:not(:modal) .promo__steps {
+      display: none;
+    }
+
+    .promo:not(:modal) .promo__title {
+      margin-top: 0;
+      font-size: var(--step-2);
+      max-width: none;
+    }
+
+    .promo:not(:modal) .promo__text {
+      margin-top: 0.5rem;
+      font-size: var(--step--1);
+      line-height: 1.5;
+    }
+
+    .promo:not(:modal) .promo__get {
+      margin-top: 0.9rem;
+    }
+
+    .promo:not(:modal) .promo__fine {
+      margin-top: 0.75rem;
+      font-size: 0.7rem;
+    }
+
+    .promo:not(:modal) .promo__later {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { track } from '../scripts/track';
+
+  const DAY = 864e5;
+  const DISMISS_FOR = 14 * DAY;
+  const CONVERT_FOR = 90 * DAY;
+  const KEY_DISMISSED = 'bf:promo:dismissed';
+  const KEY_CONVERTED = 'bf:promo:converted';
+  const KEY_SESSION = 'bf:promo:shown';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-app-promo]');
+  const status = document.querySelector<HTMLElement>('[data-promo-status]');
+
+  const stored = (key: string): number => {
+    try {
+      return Number(localStorage.getItem(key)) || 0;
+    } catch {
+      return 0;
+    }
+  };
+  const remember = (store: 'local' | 'session', key: string): void => {
+    try {
+      (store === 'local' ? localStorage : sessionStorage).setItem(key, String(Date.now()));
+    } catch {
+      /* storage unavailable: the pop-up may simply show again */
+    }
+  };
+  const shownThisSession = (): boolean => {
+    try {
+      return sessionStorage.getItem(KEY_SESSION) !== null;
+    } catch {
+      return false;
+    }
+  };
+
+  if (dialog) {
+    const wide = window.matchMedia('(min-width: 48em)');
+    let mode: 'modal' | 'card' = 'modal';
+
+    const open = (trigger: string, manual: boolean): void => {
+      if (dialog.open) return;
+      // A manual request wins over the mobile menu; an automatic one waits its turn.
+      const other = document.querySelector<HTMLDialogElement>('dialog[open]');
+      if (other) {
+        if (!manual) return;
+        other.close();
+      }
+
+      mode = manual || wide.matches ? 'modal' : 'card';
+      if (mode === 'modal') {
+        dialog.showModal();
+        window.__lenis?.stop();
+      } else {
+        // Non-modal card: show it without pulling keyboard focus away from
+        // whatever the visitor was doing, and tell screen readers it is there.
+        const before = document.activeElement;
+        dialog.show();
+        if (before instanceof HTMLElement && before !== document.body) before.focus({ preventScroll: true });
+        else if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        if (status) status.textContent = 'Offer: claim a $25 fuel credit with the Blackfin Fuels app. Details are at the end of the page.';
+      }
+      remember('session', KEY_SESSION);
+      track('app_promo_view', { trigger, mode });
+    };
+
+    dialog.addEventListener('close', () => {
+      if (mode === 'modal') window.__lenis?.start();
+      if (status) status.textContent = '';
+      const converted = dialog.returnValue === 'converted';
+      if (!converted) remember('local', KEY_DISMISSED);
+      track(converted ? 'app_promo_convert' : 'app_promo_dismiss', { mode });
+      dialog.returnValue = '';
+    });
+
+    dialog.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      if (event.target.closest('[data-promo-close]')) dialog.close('dismissed');
+      else if (event.target.closest('a[data-store]')) dialog.close('converted');
+      // A click on the dialog element itself is a click on the backdrop.
+      else if (event.target === dialog && mode === 'modal') dialog.close('dismissed');
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element)) return;
+      const opener = event.target.closest('[data-open-app-promo]');
+      if (!opener) return;
+      event.preventDefault();
+      open('manual', true);
+    });
+
+    // If the window is resized across the breakpoint while the card is showing, close it cleanly.
+    wide.addEventListener('change', () => {
+      if (dialog.open && mode === 'card') dialog.close('dismissed');
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const now = Date.now();
+    // Opens only from "Claim your $25" buttons now; the arrival pop-up is FuelPrompt.
+    const eligible =
+      document.body.dataset.appPromo === 'auto' &&
+      !params.has('nopromo') &&
+      !shownThisSession() &&
+      now - stored(KEY_DISMISSED) > DISMISS_FOR &&
+      now - stored(KEY_CONVERTED) > CONVERT_FOR;
+
+    if (params.has('promo')) {
+      open('forced', wide.matches || params.get('promo') === 'modal');
+    } else if (eligible) {
+      const started = performance.now();
+      const elapsed = () => performance.now() - started;
+      let fired = false;
+
+      const busy = (): boolean => {
+        const active = document.activeElement;
+        const typing =
+          active instanceof HTMLElement &&
+          (active.matches('input, textarea, select, iframe') || active.isContentEditable);
+        return document.hidden || typing || document.querySelector('dialog[open]') !== null;
+      };
+
+      const fire = (trigger: string): void => {
+        if (fired || busy()) return;
+        fired = true;
+        window.removeEventListener('scroll', onScroll);
+        document.documentElement.removeEventListener('mouseleave', onLeave);
+        window.clearInterval(timer);
+        open(trigger, false);
+      };
+
+      const onScroll = (): void => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        if (max > 600 && window.scrollY / max >= 0.4 && elapsed() > 10_000) fire('scroll');
+      };
+      const onLeave = (event: MouseEvent): void => {
+        if (event.clientY <= 0 && elapsed() > 8_000) fire('exit');
+      };
+      const timer = window.setInterval(() => {
+        if (elapsed() > 35_000) fire('time');
+        else onScroll();
+      }, 1000);
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      document.documentElement.addEventListener('mouseleave', onLeave);
+    }
+  }
+</script>

@@ -1,0 +1,286 @@
+---
+/**
+ * Site footer: logo, page links, service areas, app download, contact, legal.
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import StoreBadges from './StoreBadges.astro';
+import { app, cities, contact, social, site, ORDER_URL } from '../data/site';
+
+const year = new Date().getFullYear();
+
+const company = [
+  { label: 'About Us', href: '/about-us/' },
+  { label: 'Fuel Delivery', href: '/fuel-delivery/' },
+  { label: 'Pricing', href: '/pricing/' },
+  { label: 'Make Payment', href: '/make-payment/' },
+  { label: "FAQ's", href: '/faqs/' },
+  { label: 'Contact Us', href: '/contact-us/' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__top">
+      <div class="site-footer__brand">
+        <a href="/" aria-label="Blackfin Fuels home"><Logo layout="stacked" height={118} /></a>
+        <p class="site-footer__strap">Rec 90 · Ethanol Free · Commercially Insured</p>
+        <div class="site-footer__social">
+          <a href={social.facebook} target="_blank" rel="noopener" aria-label="Blackfin Fuels on Facebook">
+            <Icon name="facebook" size={20} />
+          </a>
+          <a href={social.instagram} target="_blank" rel="noopener" aria-label="Blackfin Fuels on Instagram">
+            <Icon name="instagram" size={20} />
+          </a>
+        </div>
+      </div>
+
+      <nav class="site-footer__col" aria-label="Company">
+        <h2 class="site-footer__heading">Company</h2>
+        <ul role="list">
+          {company.map((link) => <li><a href={link.href}>{link.label}</a></li>)}
+        </ul>
+      </nav>
+
+      <nav class="site-footer__col" aria-label="Service areas">
+        <h2 class="site-footer__heading">Service Areas</h2>
+        <ul role="list">
+          <li><a href="/service-areas/">All service areas</a></li>
+          {cities.map((city) => <li><a href={`/${city.slug}/`}>{city.name}</a></li>)}
+        </ul>
+      </nav>
+
+      <div class="site-footer__col">
+        <h2 class="site-footer__heading">Contact</h2>
+        <ul role="list">
+          <li>
+            <a class="site-footer__contact" href={contact.phoneHref}><Icon name="phone" size={17} />{contact.phoneDisplay}</a>
+          </li>
+          <li>
+            <a class="site-footer__contact" href={contact.emailHref}><Icon name="mail" size={17} /><span>{contact.email.split('@')[0]}@<wbr />{contact.email.split('@')[1]}</span></a>
+          </li>
+          <li class="site-footer__area"><Icon name="map-pin" size={17} />{contact.serviceLine}</li>
+          <li><a class="site-footer__order" href={ORDER_URL}>Order Fuel <Icon name="arrow-right" size={16} /></a></li>
+        </ul>
+      </div>
+
+      <div class="site-footer__col site-footer__app">
+        <h2 class="site-footer__heading">The App</h2>
+        <p>Compare prices, order, track and pay from your phone.</p>
+        <StoreBadges placement="footer" size="sm" />
+        <button class="site-footer__refer" type="button" data-open-app-promo>
+          <Icon name="gift" size={17} />
+          {app.referral.headline}
+        </button>
+      </div>
+    </div>
+
+    <hr class="hairline" />
+
+    <div class="site-footer__bottom">
+      <p>© {year} {site.name}. All rights reserved.</p>
+      <ul class="site-footer__legal" role="list">
+        <li><a href="/privacy-policy/">Privacy Policy</a></li>
+        <li><a href="/terms-and-conditions/">Terms and Conditions</a></li>
+      </ul>
+    </div>
+
+    <p class="site-footer__marks">
+      Apple, the Apple logo and App Store are trademarks of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    z-index: var(--z-content);
+    padding-block: clamp(3.5rem, 2rem + 6vw, 6rem) 2rem;
+    background: linear-gradient(180deg, var(--navy-900), var(--abyss));
+    border-top: 1px solid var(--line);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .site-footer__top {
+    display: grid;
+    gap: 2.5rem 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-bottom: clamp(2.5rem, 1.5rem + 4vw, 4rem);
+  }
+
+  .site-footer__brand,
+  .site-footer__app {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer__strap {
+    margin-top: 1.25rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .site-footer__social {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+  }
+
+  .site-footer__social a {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out),
+      border-color var(--dur-2) var(--ease-out);
+  }
+
+  .site-footer__social a:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .site-footer__heading {
+    margin-bottom: 1.1rem;
+    font-family: var(--font-body);
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .site-footer__col ul {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0;
+  }
+
+  .site-footer__col a,
+  .site-footer__area {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.5rem;
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: color var(--dur-1) ease;
+  }
+
+  .site-footer__col a:hover {
+    color: var(--text);
+  }
+
+  .site-footer__col :global(.icon) {
+    color: var(--accent);
+  }
+
+  /* Break long addresses only at the @ sign, never mid-word. */
+  .site-footer__contact {
+    overflow-wrap: break-word;
+  }
+
+  .site-footer__col a.site-footer__order {
+    margin-top: 0.4rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .site-footer__app p {
+    max-width: 22rem;
+    margin-bottom: 1rem;
+  }
+
+  .site-footer__refer {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.75rem;
+    margin-top: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
+    transition: text-decoration-color var(--dur-2) ease;
+  }
+
+  .site-footer__refer:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .site-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-top: 1.5rem;
+    font-size: var(--step--2);
+    color: var(--text-faint);
+  }
+
+  .site-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin: 0;
+  }
+
+  .site-footer__legal a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .site-footer__legal a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+
+  .site-footer__marks {
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--text-faint);
+    max-width: 60rem;
+  }
+
+  @media (min-width: 48em) {
+    .site-footer__top {
+      grid-template-columns: 1.3fr 1fr 1fr 1.2fr;
+    }
+    .site-footer__brand {
+      grid-column: auto;
+      grid-row: span 2;
+    }
+    .site-footer__app {
+      grid-column: 2 / -1;
+    }
+  }
+
+  @media (min-width: 72em) {
+    .site-footer__top {
+      grid-template-columns: 1.2fr 0.8fr 0.85fr 1.4fr 1.2fr;
+    }
+    .site-footer__brand {
+      grid-row: auto;
+    }
+    .site-footer__app {
+      grid-column: auto;
+    }
+  }
+</style>

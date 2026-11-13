@@ -1,0 +1,246 @@
+---
+/**
+ * /free-estimate/ : the booking page, where every "Order Fuel" button lands.
+ * Kept calm and fast on purpose: a short hero with today's live price, then the
+ * form beside the "what happens next" sidebar. No 3D, no photo above the form,
+ * no app pop-up.
+ * Copy: reference/original-site/content/free-estimate.md
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import OrderForm from '../components/OrderForm.astro';
+import PriceTag from '../components/PriceTag.astro';
+import Icon from '../components/Icon.astro';
+import Contours from '../components/Contours.astro';
+import OrderAside from '../components/order/OrderAside.astro';
+import { app } from '../data/site';
+---
+
+<BaseLayout
+  title="Book Marine Fuel Delivery to Your Dock"
+  description="See today's Rec 90 price, choose your gallons and request a delivery to your dock. No payment until after delivery; track and pay in the Blackfin Fuels app."
+  breadcrumbs={[{ name: 'Book Delivery', href: '/free-estimate/' }]}
+  promo={false}
+>
+  <!-- ============ HERO ============ -->
+  <section class="bhero">
+    <Contours class="bhero__lines" lines={16} />
+    <div class="container bhero__grid">
+      <div class="bhero__copy">
+        <p class="eyebrow">Book Delivery</p>
+        <h1 class="bhero__title">Fuel delivered <span class="accent">to your dock.</span></h1>
+        <p class="lede">
+          Check today's price, tell us where your boat is and how much fuel you need. We'll fit you into the next route through your area
+          and fill you up right at the dock.
+        </p>
+        <PriceTag cta={false} class="bhero__price" />
+        <p class="bhero__app">
+          <Icon name="smartphone" size={18} />
+          <span>
+            After booking, track your delivery and pay in the Blackfin Fuels app. <a href={app.page}>Get the app</a>
+          </span>
+        </p>
+      </div>
+
+      <dl class="bhero__facts">
+        <div><dt>Hose reach</dt><dd class="numeral">350<small>ft</small></dd></div>
+        <div><dt>Ethanol free</dt><dd class="numeral">Rec 90</dd></div>
+        <div><dt>Delivery fee</dt><dd class="numeral">$0</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============ FORM ============ -->
+  <section class="book" id="book">
+    <div class="container book__layout">
+      <OrderForm
+        title="Book your delivery"
+        note="Takes about a minute. No payment until after your delivery."
+        heading="h2"
+        class="book__form"
+      />
+      <div class="book__aside">
+        <OrderAside />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ---------- hero: short, so the form is in view sooner ---------- */
+  .bhero {
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.2rem, 0.72rem + 1.75vw, 2.48rem)) 0 clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 70% at 85% 0%, rgb(55 138 221 / 0.3), transparent 62%),
+      radial-gradient(60% 60% at 0% 100%, rgb(31 95 158 / 0.2), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 85%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .bhero :global(.bhero__lines) {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: -1;
+    opacity: 0.4;
+  }
+
+  .bhero__grid {
+    display: grid;
+    gap: clamp(2rem, 1rem + 3vw, 3rem);
+  }
+
+  @media (min-width: 62em) {
+    .bhero__grid {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr);
+      gap: 5rem;
+      align-items: end;
+    }
+  }
+
+  .bhero__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .bhero__title {
+    font-size: clamp(2.13rem, 0.98rem + 3.4vw, 4.2rem);
+    line-height: 0.92;
+    max-width: 14ch;
+  }
+
+  .bhero__title :global(.accent) {
+    display: block;
+    color: var(--accent);
+  }
+
+  .bhero__copy :global(.lede) {
+    max-width: 36em;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  .bhero__copy :global(.bhero__price) {
+    margin-top: 1.75rem;
+  }
+
+  .bhero__app {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .bhero__app :global(.icon) {
+    flex: none;
+    color: var(--accent);
+  }
+
+  .bhero__app a {
+    display: inline-block;
+    padding-block: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  /* Hairline-ruled number rows, as on the home page. */
+  .bhero__facts {
+    display: grid;
+    margin: 0;
+  }
+
+  .bhero__facts > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .bhero__facts > div:first-child {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .bhero__facts dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .bhero__facts dd {
+    margin: 0;
+    font-size: var(--step-3);
+  }
+
+  .bhero__facts small {
+    margin-left: 0.15em;
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+
+  @media (max-width: 61.99em) {
+    .bhero__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-block: 1px solid var(--line-strong);
+    }
+    .bhero__facts > div,
+    .bhero__facts > div:first-child {
+      flex-direction: column-reverse;
+      gap: 0.3rem;
+      padding: 0.9rem 0.75rem;
+      border: 0;
+    }
+    .bhero__facts > div + div {
+      border-left: 1px solid var(--line);
+    }
+    .bhero__facts dd {
+      font-size: var(--step-2);
+    }
+  }
+
+  /* ---------- form ---------- */
+  .book {
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.5rem) var(--section-pad);
+    background:
+      radial-gradient(60% 40% at 10% 0%, rgb(55 138 221 / 0.1), transparent 70%),
+      linear-gradient(180deg, var(--navy-900), var(--navy-800));
+  }
+
+  .book__layout {
+    display: grid;
+    gap: clamp(2.5rem, 1.5rem + 4vw, 4rem);
+    align-items: start;
+  }
+
+  .book__layout > * {
+    min-width: 0;
+  }
+
+  @media (min-width: 62em) {
+    .book__layout {
+      grid-template-columns: minmax(0, 1.55fr) minmax(19rem, 1fr);
+    }
+
+    .book__aside {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-5));
+    }
+  }
+
+  /* If the window is too short to show the whole sidebar, let it scroll with the page. */
+  @media (min-width: 62em) and (max-height: 50rem) {
+    .book__aside {
+      position: static;
+    }
+  }
+</style>

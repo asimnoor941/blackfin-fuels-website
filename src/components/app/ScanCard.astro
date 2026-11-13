@@ -1,0 +1,70 @@
+---
+/**
+ * QR code with a short "scan to download" note. Only shown on desktop-sized
+ * screens that are not a phone or tablet (those get the store badges instead).
+ *
+ *   <ScanCard source="app-page" />
+ *
+ * source  Passed to QrCode (?src=...) so scans can be told apart in analytics.
+ * size    QR size in px.
+ * always  Show at every width (used on /get-app/, where desktop is the only viewer).
+ */
+import QrCode from '../QrCode.astro';
+
+interface Props {
+  source: string;
+  size?: number;
+  always?: boolean;
+}
+
+const { source, size = 124, always = false } = Astro.props;
+---
+
+<div class:list={['scan', { 'scan--always': always }]}>
+  <QrCode source={source} size={size} />
+  <p class="scan__text">
+    <strong>Scan to download.</strong>
+    <span>Point your phone camera here. It opens the App Store or Google Play.</span>
+  </p>
+</div>
+
+<style>
+  .scan {
+    display: none;
+    align-items: center;
+    gap: 1.25rem;
+    max-width: 25rem;
+  }
+
+  .scan--always {
+    display: flex;
+  }
+
+  @media (min-width: 60em) {
+    .scan {
+      display: flex;
+    }
+  }
+
+  /* Phones and tablets already have the store one tap away. */
+  :global(html[data-platform='ios']) .scan,
+  :global(html[data-platform='android']) .scan {
+    display: none;
+  }
+
+  .scan__text {
+    display: grid;
+    gap: 0.3rem;
+    font-size: var(--step--1);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .scan__text strong {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+</style>

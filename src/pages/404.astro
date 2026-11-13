@@ -1,0 +1,190 @@
+---
+/**
+ * 404 page. Short and on-brand: the home page's hero type, an outlined "404"
+ * behind the fleet cut-out, and the four ways back as hairline-ruled rows.
+ * Nothing moves: the page fits the first screen.
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import SupportHero from '../components/support/SupportHero.astro';
+import { contact, ORDER_URL } from '../data/site';
+
+import tankers from '../assets/trucks/two-tankers.webp';
+
+const ways = [
+  { label: 'Order Fuel', note: 'Book a delivery to your dock', href: ORDER_URL },
+  { label: 'Home', note: 'Start again from the top', href: '/' },
+  { label: 'Service Areas', note: 'Bradenton to Cape Coral', href: '/service-areas/' },
+  { label: contact.phoneDisplay, note: 'Or call us', href: contact.phoneHref },
+];
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="This page is off the route. Head back to the Blackfin Fuels home page, see our service areas, order fuel to your dock, or call us on (941) 724-0453."
+  noindex
+  promo={false}
+>
+  <SupportHero
+    tall
+    eyebrow="Error 404"
+    title="Off the route."
+    lede="We couldn't find that page. It may have moved, or the link may be out of date. Here is the way back."
+  >
+    <div slot="meta" class="lost">
+      <ol class="lost__ways" role="list">
+        {
+          ways.map((way, i) => (
+            <li>
+              <a class="way" href={way.href}>
+                <span class="way__num numeral">0{i + 1}</span>
+                <span class="way__label">{way.label}</span>
+                <span class="way__note">{way.note}</span>
+                <Icon name="arrow-up-right" size={18} />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="lost__stage" aria-hidden="true">
+        <span class="lost__code numeral">404</span>
+        <Picture
+          src={tankers}
+          alt=""
+          formats={['avif', 'webp']}
+          widths={[480, 800, 1200]}
+          sizes="(min-width: 60em) 40vw, 90vw"
+          loading="eager"
+          class="lost__truck"
+        />
+      </div>
+    </div>
+  </SupportHero>
+</BaseLayout>
+
+<style>
+  .lost {
+    display: grid;
+    gap: clamp(2rem, 1rem + 4vw, 4rem);
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .lost {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 4rem;
+    }
+  }
+
+  .lost__ways {
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .way {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'num label icon'
+      'num note icon';
+    align-items: center;
+    column-gap: 1rem;
+    min-height: 4.75rem;
+    padding: 0.85rem 0.25rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-strong);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      padding var(--dur-2) var(--ease-out);
+  }
+
+  .way__num {
+    grid-area: num;
+    font-size: var(--step-2);
+    color: var(--accent);
+  }
+
+  .way__label {
+    grid-area: label;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+
+  .way__note {
+    grid-area: note;
+    margin-top: 0.2rem;
+    font-size: var(--step--2);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .way :global(.icon) {
+    grid-area: icon;
+    color: var(--text-faint);
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .way:hover,
+  .way:focus-visible {
+    background: rgb(95 175 255 / 0.06);
+    padding-inline: 0.9rem;
+  }
+
+  .way:hover :global(.icon),
+  .way:focus-visible :global(.icon) {
+    color: var(--accent);
+    transform: translate(3px, -3px);
+  }
+
+  .lost__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: clamp(1rem, 3vw, 3rem);
+  }
+
+  .lost__code {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: clamp(6.56rem, 3rem + 12.24vw, 14rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    transform: translate(-50%, -58%);
+    pointer-events: none;
+  }
+
+  .lost__stage::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 8%;
+    height: 16%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.28), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .lost__stage :global(.lost__truck) {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.55));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .way,
+    .way :global(.icon) {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,319 @@
+---
+/**
+ * Make Payment: the ways to pay onsite, then the two ways to pay later (emailed
+ * invoice, or in the app through QuickBooks). 3D effects follow the scroll:
+ * flip (method cards), tilt (pay-later cards), swing (phone).
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceHero from '../components/service/ServiceHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Button from '../components/Button.astro';
+import Icon from '../components/Icon.astro';
+import PhoneFrame from '../components/PhoneFrame.astro';
+import StoreBadges from '../components/StoreBadges.astro';
+import { app, contact, ORDER_URL } from '../data/site';
+import '../components/service/service.css';
+
+import truckF550 from '../assets/trucks/f550-1000.webp';
+import screenPaid from '../assets/app/paid-up.png';
+
+const methods = [
+  { name: 'Cash', icon: 'tag' },
+  { name: 'Check', icon: 'receipt' },
+  { name: 'Debit / Credit Card', icon: 'card' },
+] as const;
+---
+
+<BaseLayout
+  title="Payment Options: Cash, Check or Card"
+  description="We invoice onsite at delivery and accept cash, check and debit or credit card. Prefer not to pay onsite? You can pay through an emailed invoice instead."
+  breadcrumbs={[{ name: 'Make Payment', href: '/make-payment/' }]}
+>
+  <!-- ============ HERO ============ -->
+  <ServiceHero
+    eyebrow="How You Pay"
+    title='Payment<span class="accent">cash, check or card.</span>'
+    lede="We invoice onsite at delivery. However, we have many payment options to choose from to make it easier for our customers."
+  >
+    <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+    <Button href={contact.phoneHref} variant="ghost" size="lg" icon="phone" arrow={false}>{contact.phoneDisplay}</Button>
+
+    <div slot="aside" class="mp-truck">
+      <div class="mp-truck__img">
+        <Picture
+          src={truckF550}
+          alt="White Blackfin Fuels 1,000 gallon fuel truck"
+          formats={['avif', 'webp']}
+          widths={[480, 800, 1200, 1600]}
+          sizes="(min-width: 62em) 44vw, 92vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+      <div class="mp-truck__floor" aria-hidden="true"></div>
+    </div>
+  </ServiceHero>
+
+  <!-- ============ WAYS TO PAY ============ -->
+  <section class="svc-band svc-band--base mp-ways" id="ways-to-pay">
+    <div class="container">
+      <header class="svc-head svc-head--split">
+        <div data-reveal>
+          <p class="eyebrow">We Accept</p>
+          <h2>Ways To Pay</h2>
+        </div>
+        <p class="lede" data-reveal>Pay however works best for you, onsite when we deliver.</p>
+      </header>
+
+      <ul class="mp-methods" role="list" data-3d="pop-group">
+        {
+          methods.map((m, i) => (
+            <li class="method svc-card">
+              <span class="method__index svc-outline" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <span class="method__icon">
+                <Icon name={m.icon} size={24} />
+              </span>
+              <h3 class="method__title">{m.name}</h3>
+              <p class="svc-label">Accepted onsite</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PAY LATER: emailed invoice or the app ============ -->
+  <section class="svc-band svc-band--raised mp-later">
+    <div class="container mp-later__grid">
+      <div class="mp-later__copy">
+        <div data-reveal>
+          <p class="eyebrow">Pay Later</p>
+          <h2 class="mp-later__title">Prefer not to pay onsite?</h2>
+        </div>
+
+        <div class="mp-later__cards">
+          <article class="later svc-card">
+            <span class="later__icon"><Icon name="mail" size={22} /></span>
+            <div>
+              <h3 class="later__title">Emailed invoice</h3>
+              <p>You also have the option to pay through an emailed invoice if that's more convenient.</p>
+            </div>
+          </article>
+          <article class="later later--app svc-card">
+            <span class="later__icon"><Icon name="smartphone" size={22} /></span>
+            <div>
+              <h3 class="later__title">Pay in the app</h3>
+              <p>Every invoice, paid securely through QuickBooks. Download the app to see your orders and invoices.</p>
+              <div class="later__get">
+                <StoreBadges placement="make-payment" size="sm" adaptive />
+                <Button href={app.page} variant="link" class="svc-tap">About the app</Button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="mp-later__phone">
+        <div data-3d="swing" data-3d-strength="0.8">
+          <PhoneFrame src={screenPaid} alt="App Orders and Invoices screen showing All Paid Up with an account balance of $0.00" width="min(62vw, 17.5rem)" />
+        </div>
+        <p class="mp-later__note">Screens show sample data.</p>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Ready to Get<br />Fueled Up?"
+    text="Rec 90 delivered to your dock, lift, or slip. Pay however works best for you."
+  />
+</BaseLayout>
+
+<style>
+  /* ---------- hero truck ---------- */
+  .mp-truck {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding-block: clamp(1rem, 3vw, 3rem);
+  }
+
+  @media (min-width: 62em) {
+    .mp-truck .mp-truck__img {
+      width: 112%;
+      margin-right: -6%;
+    }
+  }
+
+  .mp-truck__img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+
+  .mp-truck__img :global(img) {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.55));
+  }
+
+  .mp-truck__floor {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 8%;
+    height: 20%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.3), transparent 70%);
+    filter: blur(6px);
+  }
+
+  /* ---------- ways to pay ---------- */
+  .mp-methods {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  @media (min-width: 48em) {
+    .mp-methods {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .method {
+    display: grid;
+    align-content: end;
+    gap: 0.9rem;
+    min-height: clamp(14rem, 10rem + 10vw, 21rem);
+    padding: clamp(1.4rem, 1rem + 1.2vw, 2.25rem);
+    overflow: hidden;
+  }
+
+  .method__index {
+    position: absolute;
+    top: 1rem;
+    right: 1.25rem;
+    font-size: clamp(4.1rem, 2.25rem + 3.4vw, 5.95rem);
+  }
+
+  .method__icon {
+    position: absolute;
+    top: clamp(1.4rem, 1rem + 1.2vw, 2.25rem);
+    left: clamp(1.4rem, 1rem + 1.2vw, 2.25rem);
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .method__title {
+    position: relative;
+    font-size: var(--step-3);
+    line-height: 0.95;
+    max-width: 11ch;
+  }
+
+  @media (max-width: 47.99em) {
+    .method {
+      min-height: 12rem;
+    }
+  }
+
+  /* ---------- pay later ---------- */
+  .mp-later__grid {
+    display: grid;
+    gap: 3.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .mp-later__grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 4.5rem;
+    }
+  }
+
+  .mp-later__copy > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .mp-later__title {
+    font-size: var(--step-4);
+    max-width: 12ch;
+  }
+
+  .mp-later__cards {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+
+  .later {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+  }
+
+  .later--app {
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.34), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+  }
+
+  .later__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    background: rgb(95 175 255 / 0.1);
+    border-radius: var(--radius-sm);
+  }
+
+  .later__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  .later p {
+    margin-top: 0.5rem;
+    font-size: var(--step-0);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .later__get {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.25rem;
+  }
+
+  @media (max-width: 30em) {
+    .later {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .mp-later__phone {
+    display: grid;
+    justify-items: center;
+    perspective: 1500px;
+  }
+
+  .mp-later__note {
+    margin-top: 2.5rem;
+    font-size: var(--step--2);
+    color: var(--text-faint);
+  }
+</style>

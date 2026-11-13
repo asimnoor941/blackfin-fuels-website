@@ -1,0 +1,297 @@
+---
+/**
+ * Hero of the /app/ page, in the home page's style: a big headline, the store
+ * badges, then a wide stage with three phones rising out of it and a strip of
+ * facts. It provides the page's single <h1> and, like PageHero, slides under
+ * the transparent header, so it must be the first thing in <main>.
+ *
+ *   <AppHero eyebrow="..." title="The easiest way" accent="to get fuel." lede="..." note="Free for iPhone and Android." facts={[...]} />
+ *
+ * title   First line of the h1. accent: the second line, in the accent colour.
+ * facts   Up to three { value, label } pairs shown on the stage.
+ *
+ * Nothing here moves: it is on screen at load. The stage carries data-3d="none"
+ * so motion.ts does not auto-assign a scroll turn to these phones.
+ */
+import Contours from '../Contours.astro';
+import PhoneFrame from '../PhoneFrame.astro';
+import StoreBadges from '../StoreBadges.astro';
+import welcome from '../../assets/app/welcome.png';
+import homeSavings from '../../assets/app/home-savings.png';
+import orders from '../../assets/app/orders.png';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  accent?: string;
+  lede: string;
+  note: string;
+  facts?: { value: string; label: string }[];
+}
+
+const { eyebrow, title, accent, lede, note, facts = [] } = Astro.props;
+---
+
+<section class="app-hero">
+  <Contours class="app-hero__lines" lines={22} />
+
+  <div class="container app-hero__top">
+    <p class="eyebrow">{eyebrow}</p>
+    <h1 class="app-hero__title">
+      <span class="app-hero__line">{title}</span>
+      {accent && <span class="app-hero__line app-hero__line--accent">{accent}</span>}
+    </h1>
+    <div class="app-hero__row">
+      <p class="lede">{lede}</p>
+      <div class="app-hero__actions">
+        <StoreBadges placement="app-hero" size="lg" />
+        <p class="app-hero__note">{note}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <figure class="app-hero__stage" data-3d="none">
+      <div class="app-hero__deck">
+        <div class="app-hero__glow" aria-hidden="true"></div>
+        <div class="app-hero__phones">
+          <div class="app-hero__phone app-hero__phone--side app-hero__phone--left">
+            <PhoneFrame
+              src={welcome}
+              alt="App welcome screen: Marine fuel delivered. Your home, your dock, your schedule."
+              width="var(--s)"
+              tilt={18}
+              eager
+            />
+          </div>
+          <div class="app-hero__phone app-hero__phone--main">
+            <PhoneFrame
+              src={homeSavings}
+              alt="App home screen comparing the Blackfin price per gallon with a nearby marina price, with a cost calculator and a Schedule delivery button"
+              width="var(--c)"
+              eager
+            />
+          </div>
+          <div class="app-hero__phone app-hero__phone--side app-hero__phone--right">
+            <PhoneFrame
+              src={orders}
+              alt="Orders and Invoices screen with a delivery progress bar running from Placed to Delivered"
+              width="var(--s)"
+              tilt={-18}
+              eager
+            />
+          </div>
+        </div>
+      </div>
+
+      {
+        facts.length > 0 && (
+          <ul class="app-hero__facts" role="list">
+            {facts.map((fact) => (
+              <li>
+                <span class="numeral">{fact.value}</span>
+                <span>{fact.label}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      <figcaption class="app-hero__caption">Screens show sample data.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .app-hero {
+    position: relative;
+    z-index: var(--z-content);
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .app-hero :global(.app-hero__lines) {
+    position: absolute;
+    inset: 22% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.45;
+  }
+
+  .app-hero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.46rem, 0.9rem + 4.49vw, 5.88rem);
+    line-height: 0.9;
+  }
+
+  .app-hero__line {
+    display: block;
+  }
+
+  .app-hero__line--accent {
+    color: var(--accent);
+  }
+
+  .app-hero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .app-hero__row :global(.lede) {
+    color: var(--text);
+    opacity: 0.86;
+    max-width: 36em;
+  }
+
+  .app-hero__note {
+    margin-top: 0.9rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 60em) {
+    .app-hero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  /* ----- stage ----- */
+  .app-hero__stage {
+    position: relative;
+    margin: clamp(2.5rem, 1.5rem + 4vw, 5rem) 0 0;
+  }
+
+  .app-hero__deck {
+    position: relative;
+    overflow: hidden;
+    height: clamp(19rem, 10rem + 30vw, 34rem);
+    background:
+      radial-gradient(60% 80% at 50% 100%, rgb(95 175 255 / 0.28), transparent 70%),
+      linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.01)),
+      linear-gradient(180deg, #0f2c4b, #0a1d31);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 1px 0 rgb(255 255 255 / 0.08) inset;
+  }
+
+  .app-hero__glow {
+    position: absolute;
+    left: 50%;
+    top: 12%;
+    width: min(70%, 42rem);
+    aspect-ratio: 1;
+    translate: -50% 0;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    box-shadow:
+      0 0 0 clamp(2rem, 5vw, 4.5rem) rgb(157 205 255 / 0.025),
+      0 0 0 clamp(4rem, 10vw, 9rem) rgb(157 205 255 / 0.02);
+  }
+
+  /* --c is the centre phone's width, --s the two side phones'. */
+  .app-hero__phones {
+    --c: clamp(10rem, 38vw, 19rem);
+    --s: calc(var(--c) * 0.84);
+    position: absolute;
+    inset: clamp(1.75rem, 1rem + 3vw, 3.5rem) 0 auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .app-hero__phone {
+    position: relative;
+    flex: none;
+  }
+
+  .app-hero__phone--main {
+    z-index: 1;
+  }
+
+  .app-hero__phone--side {
+    margin-top: calc(var(--c) * 0.22);
+    opacity: 0.92;
+  }
+
+  .app-hero__phone--left {
+    margin-right: calc(var(--s) * -0.3);
+  }
+
+  .app-hero__phone--right {
+    margin-left: calc(var(--s) * -0.3);
+  }
+
+  @media (min-width: 60em) {
+    .app-hero__phones {
+      --c: clamp(12rem, 19vw, 19rem);
+      --s: calc(var(--c) * 0.9);
+    }
+    .app-hero__phone--left {
+      margin-right: calc(var(--s) * 0.08);
+    }
+    .app-hero__phone--right {
+      margin-left: calc(var(--s) * 0.08);
+    }
+  }
+
+  /* ----- facts ----- */
+  /* Hairline-ruled number row under the stage. */
+  .app-hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: clamp(1.5rem, 1rem + 1.5vw, 2.5rem) 0 0;
+    border-block: 1px solid var(--line-strong);
+  }
+
+  .app-hero__facts li {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+    padding: 1.1rem clamp(0.7rem, 0.4rem + 1.5vw, 2rem);
+  }
+
+  .app-hero__facts li:first-child {
+    padding-left: 0;
+  }
+
+  .app-hero__facts li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  .app-hero__facts .numeral {
+    font-size: clamp(1.39rem, 0.75rem + 1.77vw, 2.38rem);
+  }
+
+  .app-hero__facts li > span:last-child {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .app-hero__caption {
+    margin-top: 0.9rem;
+    text-align: right;
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+</style>
+

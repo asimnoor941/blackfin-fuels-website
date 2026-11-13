@@ -1,0 +1,170 @@
+---
+/**
+ * /terms-and-conditions/
+ * Legal text reproduced verbatim from reference/original-site/content/terms-and-conditions.md
+ * (structure recovered from reference/original-site/pages/terms-and-conditions.html).
+ * Do not reword. On the live page the clause titles are bold run-in text; here they are h2s.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalHero from '../components/legal/LegalHero.astro';
+import LegalDoc from '../components/legal/LegalDoc.astro';
+import { contact } from '../data/site';
+
+const toc = [
+  { id: 'company-information', label: '1. Company Information' },
+  { id: 'services-provided', label: '2. Services Provided' },
+  { id: 'user-eligibility', label: '3. User Eligibility' },
+  { id: 'orders-and-delivery', label: '4. Orders and Delivery' },
+  { id: 'pricing-and-payment-terms', label: '5. Pricing and Payment Terms' },
+  { id: 'cancellation-and-refund-policy', label: '6. Cancellation and Refund Policy' },
+  { id: 'user-responsibilities', label: '7. User Responsibilities' },
+  { id: 'limitations-of-liability', label: '8. Limitations of Liability' },
+  { id: 'intellectual-property', label: '9. Intellectual Property' },
+  { id: 'privacy-policy', label: '10. Privacy Policy' },
+  { id: 'modification-of-terms', label: '11. Modification of Terms' },
+  { id: 'dispute-resolution', label: '12. Dispute Resolution' },
+  { id: 'contact-us', label: 'Contact Us' },
+];
+---
+
+<BaseLayout
+  title="Terms and Conditions"
+  description="Terms and Conditions for Blackfin Fuels Delivery of Punta Gorda, LLC: orders and delivery, pricing and payment terms, cancellations, refunds and liability."
+  promo={false}
+  breadcrumbs={[{ name: 'Terms and Conditions', href: '/terms-and-conditions/' }]}
+>
+  <LegalHero
+    title="Terms and Conditions"
+    facts={[
+      { label: 'Company', value: 'Blackfin Fuels Delivery of Punta Gorda, LLC' },
+      { label: 'Effective date', value: '12-01-2021' },
+      { label: 'Contact', value: contact.email, href: contact.emailHref },
+    ]}
+  />
+
+  <LegalDoc toc={toc}>
+    <p class="legal-title">Terms and Conditions for Blackfin Fuels Delivery of Punta Gorda, LLC</p>
+    <p class="legal-date">Effective Date: 12-01-2021</p>
+
+    <p>
+      Welcome to Blackfin Fuels Delivery of Punta Gorda, LLC (“we,” “our,” or “us”). By using our services, you agree to
+      comply with and be bound by the following terms and conditions. If you do not agree to these terms, please refrain
+      from using our services.
+    </p>
+
+    <h2 id="company-information"><span class="legal-num">1.</span> Company Information</h2>
+    <p>
+      Blackfin Fuels Delivery of Punta Gorda, LLC<br />
+      Email: <a href={contact.emailHref}>{contact.email}</a><br />
+      Phone: <a href={contact.phoneHref}>941-724-0453</a>
+    </p>
+
+    <h2 id="services-provided"><span class="legal-num">2.</span> Services Provided</h2>
+    <p>
+      Blackfin Fuels offers professional fuel delivery services, including the transportation and supply of various fuel
+      types to designated locations within our service areas. Our services cater to residential, commercial, and
+      industrial clients.
+    </p>
+
+    <h2 id="user-eligibility"><span class="legal-num">3.</span> User Eligibility</h2>
+    <p>
+      To use our services, you must be at least 18 years old and legally capable of entering into binding contracts. By
+      placing an order, you confirm that you meet these criteria.
+    </p>
+
+    <h2 id="orders-and-delivery"><span class="legal-num">4.</span> Orders and Delivery</h2>
+    <ul>
+      <li>
+        <strong>Order Placement</strong>: Orders can be placed via phone or email. Once an order is confirmed, it is
+        binding.
+      </li>
+      <li>
+        <strong>Delivery Terms</strong>: We strive to deliver fuel within agreed-upon timeframes. However, we are not
+        liable for delays caused by unforeseen events, such as weather conditions, traffic, or other force majeure
+        events.
+      </li>
+      <li>
+        <strong>Delivery Access</strong>: Clients must ensure the delivery location is accessible and free from
+        obstructions. Failure to provide proper access may result in additional charges or rescheduling.
+      </li>
+    </ul>
+
+    <h2 id="pricing-and-payment-terms"><span class="legal-num">5.</span> Pricing and Payment Terms</h2>
+    <ul>
+      <li>
+        <strong>Pricing</strong>: Fuel prices are subject to market conditions and may change without prior notice.
+        Customers will be informed of the current rate when placing an order.
+      </li>
+      <li>
+        <strong>Payment Methods</strong>: We accept various payment methods, including credit/debit cards, checks, and
+        bank transfers. Full payment is due upon delivery unless otherwise agreed.
+      </li>
+      <li>
+        <strong>Overdue Payments</strong>: Late payments may incur additional charges or interest as permitted by
+        applicable law. Continued non-payment may result in suspension of services.
+      </li>
+    </ul>
+
+    <h2 id="cancellation-and-refund-policy"><span class="legal-num">6.</span> Cancellation and Refund Policy</h2>
+    <ul>
+      <li>
+        <strong>Order Cancellations</strong>: Orders may be canceled within 48 hours of placement without penalty.
+        Cancellations after this period may incur a fee.
+      </li>
+      <li>
+        <strong>Refunds</strong>: Refunds are only provided if a delivery fails due to our negligence or inability to
+        fulfill the order. Any other refund requests will be evaluated on a case-by-case basis.
+      </li>
+    </ul>
+
+    <h2 id="user-responsibilities"><span class="legal-num">7.</span> User Responsibilities</h2>
+    <p>
+      Customers must provide accurate information regarding delivery locations and contact details. It is also the
+      customer’s responsibility to ensure that any tanks, containers, or equipment receiving fuel comply with safety
+      standards and regulations.
+    </p>
+
+    <h2 id="limitations-of-liability"><span class="legal-num">8.</span> Limitations of Liability</h2>
+    <p>Blackfin Fuels is not liable for:</p>
+    <ul>
+      <li>Damage or loss resulting from delays in delivery due to uncontrollable circumstances.</li>
+      <li>Any misuse of delivered fuel after it has been transferred to the customer.</li>
+      <li>Incidental or consequential damages beyond the cost of the delivered fuel.</li>
+    </ul>
+
+    <h2 id="intellectual-property"><span class="legal-num">9.</span> Intellectual Property</h2>
+    <p>
+      All content, branding, logos, and materials related to Blackfin Fuels are owned by or licensed to Blackfin Fuels
+      and are protected by intellectual property laws. Use of these materials without authorization is prohibited.
+    </p>
+
+    <h2 id="privacy-policy"><span class="legal-num">10.</span> Privacy Policy</h2>
+    <p>
+      We respect your privacy and are committed to protecting your personal data. Please refer to our
+      <a href="/privacy-policy/">Privacy Policy</a> for details on how we collect, use, and protect your information.
+    </p>
+
+    <h2 id="modification-of-terms"><span class="legal-num">11.</span> Modification of Terms</h2>
+    <p>
+      Blackfin Fuels reserves the right to amend these Terms and Conditions at any time. Changes will be effective
+      immediately upon posting to our website or other communication platforms. Continued use of our services after such
+      changes signifies your acceptance of the new terms.
+    </p>
+
+    <h2 id="dispute-resolution"><span class="legal-num">12.</span> Dispute Resolution</h2>
+    <p>
+      In the event of a dispute, parties agree to attempt to resolve the issue amicably. If resolution cannot be
+      achieved, disputes shall be governed by the laws of [your state], and jurisdiction shall be in the courts of
+      [appropriate county/state].
+    </p>
+
+    <h2 id="contact-us">Contact Us</h2>
+    <p>
+      If you have any questions regarding these terms, please contact us at: Email:
+      <a href={contact.emailHref}>{contact.email}</a><br />
+      Phone: <a href={contact.phoneHref}>941-724-0453</a>
+    </p>
+
+    <p>Thank you for choosing Blackfin Fuels Delivery of Punta Gorda, LLC for your fuel delivery needs.</p>
+  </LegalDoc>
+</BaseLayout>

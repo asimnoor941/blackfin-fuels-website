@@ -1,0 +1,343 @@
+---
+/**
+ * The six app features with the matching app screen.
+ *
+ * Wide screens (JS on, motion allowed): the features scroll past a sticky phone
+ * whose screen cross-fades to match the feature in the middle of the viewport.
+ * The phone swings in (data-3d="swing") as the tour scrolls into view.
+ * Small screens, reduced motion or no JS: each screen is shown inline, above
+ * the first feature it belongs to, and turns gently as it scrolls past.
+ *
+ *   <FeatureTour features={[{ icon: 'tag', title: '...', text: '...', screen: 'savings' }]} />
+ *
+ * screen  savings | request | orders | paid
+ */
+import Icon from '../Icon.astro';
+import type { IconName } from '../Icon.astro';
+import PhoneFrame from '../PhoneFrame.astro';
+import homeSavings from '../../assets/app/home-savings.png';
+import requestFuel from '../../assets/app/request-fuel.png';
+import orders from '../../assets/app/orders.png';
+import paidUp from '../../assets/app/paid-up.png';
+
+type ScreenId = 'savings' | 'request' | 'orders' | 'paid';
+
+interface Feature {
+  icon: IconName;
+  title: string;
+  text: string;
+  screen: ScreenId;
+}
+
+interface Props {
+  features: Feature[];
+}
+
+const { features } = Astro.props;
+
+const screens = {
+  savings: {
+    src: homeSavings,
+    alt: 'App home screen: Blackfin price per gallon next to a nearby marina price, the saving per gallon and a cost calculator',
+  },
+  request: {
+    src: requestFuel,
+    alt: 'Request Fuel screen, step 1 of 3: delivery address, boat, and a choice of Fill to Full or Exact amount of REC-90',
+  },
+  orders: {
+    src: orders,
+    alt: 'Orders screen: a delivery card with progress from Placed, Confirmed, Processing and En route to Delivered, above upcoming and past deliveries',
+  },
+  paid: {
+    src: paidUp,
+    alt: 'Invoices tab of Orders and Invoices showing All Paid Up and the account balance',
+  },
+} as const;
+
+// Screens in the order they first appear, for the sticky phone.
+const stage = features.map((f) => f.screen).filter((id, i, all) => all.indexOf(id) === i);
+const stageWidth = 'min(18rem, calc((100svh - var(--header-h) - 10rem) * 0.44))';
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<div class="tour" data-tour>
+  <ol class="tour__list" role="list">
+    {
+      features.map((feature, i) => {
+        const startsScreen = i === 0 || features[i - 1].screen !== feature.screen;
+        return (
+          <li class:list={['tour__item', { 'is-active': i === 0 }]} data-tour-item data-screen={feature.screen} data-index={pad(i + 1)}>
+            {startsScreen && (
+              <div class="tour__inline" data-float>
+                <PhoneFrame src={screens[feature.screen].src} alt={screens[feature.screen].alt} width="min(62vw, 15rem)" crop="top" />
+              </div>
+            )}
+            <div class="tour__copy">
+              <span class="tour__num numeral" aria-hidden="true">
+                {pad(i + 1)}
+              </span>
+              <div class="tour__body">
+                <span class="tour__icon">
+                  <Icon name={feature.icon} size={22} />
+                </span>
+                <h3 class="tour__title">{feature.title}</h3>
+                <p class="tour__text">{feature.text}</p>
+              </div>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+
+  <figure class="tour__stage">
+    <div class="tour__plinth">
+      <div class="tour__ring" aria-hidden="true"></div>
+      <div class="tour__swing" data-3d="swing" data-3d-strength="0.8">
+        <div class="tour__shots">
+          {
+            stage.map((id, i) => (
+              <div class:list={['tour__shot', { 'is-active': i === 0 }]} data-tour-shot data-screen={id}>
+                <PhoneFrame src={screens[id].src} alt={screens[id].alt} width={stageWidth} />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+    <figcaption class="tour__meta">
+      <span class="tour__count" aria-hidden="true"><span class="numeral" data-tour-count>01</span> / {pad(features.length)}</span>
+      <span class="tour__caption">Screens show sample data.</span>
+    </figcaption>
+  </figure>
+
+  <p class="tour__caption tour__caption--inline">Screens show sample data.</p>
+</div>
+
+<script>
+  // Swap the sticky phone's screen to match the feature crossing mid-viewport.
+  const wide = window.matchMedia('(min-width: 60em) and (prefers-reduced-motion: no-preference)');
+
+  document.querySelectorAll<HTMLElement>('[data-tour]').forEach((tour) => {
+    const items = Array.from(tour.querySelectorAll<HTMLElement>('[data-tour-item]'));
+    const shots = Array.from(tour.querySelectorAll<HTMLElement>('[data-tour-shot]'));
+    const count = tour.querySelector<HTMLElement>('[data-tour-count]');
+    let observer: IntersectionObserver | undefined;
+
+    const activate = (item: HTMLElement) => {
+      items.forEach((el) => el.classList.toggle('is-active', el === item));
+      shots.forEach((el) => el.classList.toggle('is-active', el.dataset.screen === item.dataset.screen));
+      if (count && item.dataset.index) count.textContent = item.dataset.index;
+    };
+
+    const setup = () => {
+      observer?.disconnect();
+      observer = undefined;
+      if (!wide.matches || !('IntersectionObserver' in window)) return;
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) activate(entry.target as HTMLElement);
+          });
+        },
+        { rootMargin: '-45% 0px -45% 0px' },
+      );
+      items.forEach((item) => observer!.observe(item));
+    };
+
+    setup();
+    wide.addEventListener('change', setup);
+  });
+</script>
+
+<style>
+  .tour__list {
+    display: grid;
+    margin: 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .tour__item {
+    padding-block: clamp(2rem, 1.5rem + 2vw, 3rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .tour__inline {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2.25rem;
+    padding-top: 0.5rem;
+  }
+
+  .tour__copy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: clamp(1.1rem, 0.6rem + 2vw, 2.5rem);
+    align-items: start;
+  }
+
+  /* Outlined index numeral, like the fleet on the home page. */
+  .tour__num {
+    min-width: 1.1em;
+    font-size: clamp(2.95rem, 1.5rem + 3.4vw, 4.9rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    transition: -webkit-text-stroke-color var(--dur-3) var(--ease-out);
+  }
+
+  .tour__icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--accent);
+    background: rgb(95 175 255 / 0.1);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .tour__title {
+    margin-top: 1rem;
+    max-width: 18ch;
+    font-size: var(--step-3);
+  }
+
+  .tour__text {
+    margin-top: 0.75rem;
+    max-width: 30em;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .tour__stage {
+    display: none;
+    margin: 0;
+  }
+
+  .tour__caption {
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    text-align: center;
+  }
+
+  .tour__caption--inline {
+    margin-top: 2.5rem;
+  }
+
+  /* Sticky phone: wide screens, motion allowed, JS running. */
+  @media (min-width: 60em) and (prefers-reduced-motion: no-preference) {
+    :global(html.js) .tour {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: clamp(2rem, 1rem + 4vw, 5.5rem);
+      align-items: start;
+    }
+
+    :global(html.js) .tour__inline,
+    :global(html.js) .tour__caption--inline {
+      display: none;
+    }
+
+    :global(html.js) .tour__item {
+      display: flex;
+      align-items: center;
+      min-height: clamp(17rem, 44vh, 24rem);
+    }
+
+    :global(html.js) .tour__copy {
+      opacity: 0.34;
+      transition: opacity var(--dur-3) var(--ease-out);
+    }
+
+    :global(html.js) .tour__item.is-active .tour__copy {
+      opacity: 1;
+    }
+
+    :global(html.js) .tour__item.is-active .tour__num {
+      -webkit-text-stroke-color: var(--accent);
+    }
+
+    :global(html.js) .tour__stage {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .tour__plinth {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.75rem, 1rem + 2vw, 3rem) 1rem;
+      overflow: hidden;
+      background:
+        radial-gradient(60% 55% at 50% 45%, rgb(95 175 255 / 0.26), transparent 70%),
+        linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.01)),
+        linear-gradient(180deg, #0f2c4b, #0a1d31);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2);
+      perspective: 1500px;
+    }
+
+    .tour__ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 82%;
+      aspect-ratio: 1;
+      translate: -50% -50%;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      box-shadow: 0 0 0 3.5rem rgb(157 205 255 / 0.025);
+    }
+
+    .tour__swing {
+      position: relative;
+    }
+
+    .tour__shots {
+      display: grid;
+      justify-items: center;
+    }
+
+    /* The outgoing screen stays put underneath until the incoming one has faded in. */
+    .tour__shot {
+      grid-area: 1 / 1;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity 0s linear 0.55s,
+        visibility 0s linear 0.55s;
+    }
+
+    .tour__shot.is-active {
+      z-index: 1;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.55s var(--ease-out);
+    }
+
+    .tour__meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .tour__count {
+      font-size: var(--step--1);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .tour__count .numeral {
+      font-size: var(--step-2);
+      color: var(--accent);
+    }
+  }
+</style>

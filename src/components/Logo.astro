@@ -1,0 +1,84 @@
+---
+/**
+ * The Blackfin Fuels logo, built from the client's own artwork.
+ *
+ * layout="inline"  fin mark beside the BLACKFINFUELS wordmark (header)
+ * layout="stacked" the full stacked logo with the tagline (footer, hero)
+ * layout="mark"    the fin and wave only
+ *
+ * tone="reversed" is for dark backgrounds (navy ink turned white),
+ * tone="colour" is the original navy and blue artwork for light backgrounds.
+ */
+import { Image } from 'astro:assets';
+import mark from '../assets/brand/mark.png';
+import markReversed from '../assets/brand/mark-reversed.png';
+import wordmark from '../assets/brand/wordmark.png';
+import wordmarkReversed from '../assets/brand/wordmark-reversed.png';
+import full from '../assets/brand/logo-full.png';
+import fullReversed from '../assets/brand/logo-full-reversed.png';
+
+interface Props {
+  layout?: 'inline' | 'stacked' | 'mark';
+  tone?: 'reversed' | 'colour';
+  /** Rendered height in CSS pixels of the mark (inline, mark) or of the whole logo (stacked). */
+  height?: number;
+  class?: string;
+}
+
+const { layout = 'inline', tone = 'reversed', height = 40, class: className } = Astro.props;
+const rev = tone === 'reversed';
+const alt = 'Blackfin Fuels, marine fuel delivery';
+---
+
+{
+  layout === 'stacked' ? (
+    <Image
+      class:list={['logo', 'logo--stacked', className]}
+      src={rev ? fullReversed : full}
+      alt={alt}
+      height={height * 2}
+      densities={[1, 2]}
+      style={`height:${height}px;width:auto`}
+      loading="lazy"
+    />
+  ) : layout === 'mark' ? (
+    <Image
+      class:list={['logo', 'logo--mark', className]}
+      src={rev ? markReversed : mark}
+      alt={alt}
+      height={height * 2}
+      densities={[1, 2]}
+      style={`height:${height}px;width:auto`}
+    />
+  ) : (
+    <span class:list={['logo', 'logo--inline', className]} style={`--logo-h:${height}px`}>
+      <Image class="logo__mark" src={rev ? markReversed : mark} alt="" height={height * 2} densities={[1, 2]} loading="eager" />
+      <Image
+        class="logo__word"
+        src={rev ? wordmarkReversed : wordmark}
+        alt={alt}
+        height={Math.round(height * 0.9)}
+        densities={[1, 2]}
+        loading="eager"
+      />
+    </span>
+  )
+}
+
+<style>
+  .logo--inline {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--logo-h) * 0.26);
+  }
+
+  .logo--inline :global(.logo__mark) {
+    height: var(--logo-h);
+    width: auto;
+  }
+
+  .logo--inline :global(.logo__word) {
+    height: calc(var(--logo-h) * 0.4);
+    width: auto;
+  }
+</style>

@@ -1,0 +1,131 @@
+---
+/**
+ * Today's live Rec 90 price with a booking link. Hidden until /api/price
+ * answers; if no price is available it shows nothing (or the fallback slot).
+ *
+ *   <PriceTag />                      compact pill (hero)
+ *   <PriceTag size="lg" />            large block (Pricing page)
+ */
+import Icon from './Icon.astro';
+import { ORDER_URL } from '../data/site';
+
+interface Props {
+  size?: 'md' | 'lg';
+  cta?: boolean;
+  /** Gentle idle float once the visitor scrolls (defaults on for the large size). */
+  float?: boolean;
+  class?: string;
+}
+
+const { size = 'md', cta = true, float = size === 'lg', class: className } = Astro.props;
+---
+
+<div class:list={['ptag', `ptag--${size}`, className]} data-price-block hidden data-float={float ? 'slow' : undefined}>
+  <span class="ptag__live"><span class="ptag__dot" aria-hidden="true"></span>Today’s Rec 90</span>
+  <span class="ptag__price numeral"><span data-price>…</span><small>/gal</small></span>
+  <span class="ptag__meta"><span>All-in · $0 delivery</span><span data-price-updated></span></span>
+  {
+    cta && (
+      <a class="ptag__cta" href={ORDER_URL}>
+        Book at this price <Icon name="arrow-right" size={16} />
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .ptag {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1.1rem;
+    padding: 0.7rem 0.8rem 0.7rem 1.1rem;
+    background: rgb(9 23 36 / 0.7);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    backdrop-filter: blur(10px);
+  }
+
+  .ptag[hidden] {
+    display: none;
+  }
+
+  .ptag__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .ptag__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    background: #3ddc84;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgb(61 220 132 / 0.18);
+  }
+
+  .ptag__price {
+    font-size: 1.9rem;
+    color: var(--text);
+  }
+
+  .ptag__price small {
+    margin-left: 0.12em;
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+
+  .ptag__meta {
+    display: grid;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    color: var(--text-faint);
+  }
+
+  .ptag__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 1.1rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+  }
+
+  .ptag__cta:hover {
+    background: var(--accent-strong);
+  }
+
+  .ptag--lg {
+    display: grid;
+    justify-items: start;
+    gap: 0.75rem;
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    border-radius: var(--radius-lg);
+  }
+
+  .ptag--lg .ptag__price {
+    font-size: clamp(2.87rem, 1.5rem + 4.08vw, 4.55rem);
+    line-height: 0.9;
+  }
+
+  .ptag--lg .ptag__meta {
+    font-size: var(--step--1);
+  }
+</style>
+
+<script>
+  import { paintPrices } from '../scripts/price';
+  paintPrices();
+</script>

@@ -1,0 +1,366 @@
+---
+/**
+ * The body of a legal page (privacy policy, terms): a numbered "On this page"
+ * index in a sticky left column on wide screens (a collapsed disclosure on
+ * small ones), the legal text itself in the default slot on a quiet card, and
+ * a closing "Questions?" line with the phone and email from site.ts.
+ * Presentation only: no motion on the legal text.
+ *
+ *   <LegalDoc toc={[{ id: 'data-security', label: 'Data Security' }]}>
+ *     <h2 id="data-security">Data Security</h2>
+ *     <p>...</p>
+ *   </LegalDoc>
+ *
+ * toc   [{ id, label }] one entry per <h2 id="..."> in the slot. Omit for no list.
+ *
+ * The slot is wrapped in `.prose`. Slot content may use:
+ *   .legal-title  the document's full formal title, when it differs from the <h1>
+ *   .legal-date   the "Last updated" / "Effective Date" line
+ *   .legal-num    the clause number inside a heading
+ */
+import Icon from '../Icon.astro';
+import { contact } from '../../data/site';
+
+interface TocItem {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  toc?: TocItem[];
+}
+
+const { toc = [] } = Astro.props;
+const hasToc = toc.length > 0;
+const pad = (n: number) => String(n).padStart(2, '0');
+// Clause labels may already carry their number ("1. Company Information").
+const clean = (label: string) => label.replace(/^\d+\.\s*/, '');
+---
+
+<section class="legal-section">
+  <div class:list={['container', 'legal', { 'legal--toc': hasToc }]}>
+    {
+      hasToc && (
+        <nav class="legal__nav" aria-label="On this page">
+          <details class="legal__toc">
+            <summary class="legal__toc-summary">
+              <span class="eyebrow eyebrow--plain">On this page</span>
+              <span class="legal__toc-mark" aria-hidden="true" />
+            </summary>
+            <ol class="legal__toc-list" role="list">
+              {toc.map((item, i) => (
+                <li>
+                  <a href={`#${item.id}`}>
+                    <span class="legal__toc-num numeral" aria-hidden="true">
+                      {pad(i + 1)}
+                    </span>
+                    <span>{clean(item.label)}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </details>
+          {/* Open on wide screens, where the list sits beside the text. Without JS it stays a working disclosure. */}
+          <script is:inline>
+            (function () {
+              var toc = document.currentScript.previousElementSibling;
+              if (toc && window.matchMedia('(min-width: 60em)').matches) toc.open = true;
+            })();
+          </script>
+        </nav>
+      )
+    }
+
+    <div class="legal__main">
+      <article class="legal__body prose">
+        <slot />
+      </article>
+
+      <div class="legal__questions">
+        <p class="legal__questions-title">Questions?</p>
+        <div class="legal__questions-links">
+          <a href={contact.phoneHref}>
+            <Icon name="phone" size={18} />
+            <span>Call {contact.phoneDisplay}</span>
+          </a>
+          <a href={contact.emailHref}>
+            <Icon name="mail" size={18} />
+            <span>Email {contact.email}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .legal-section {
+    position: relative;
+    z-index: var(--z-content);
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.5rem) var(--section-pad);
+    background: linear-gradient(180deg, var(--navy-900), var(--ink));
+  }
+
+  .legal {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .legal > * {
+    min-width: 0;
+  }
+
+  /* ---------- on this page ---------- */
+  .legal__toc {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .legal__toc-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 3.25rem;
+    padding: 0 var(--space-5);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .legal__toc-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .legal__toc-mark {
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-right: 1.5px solid var(--accent);
+    border-bottom: 1.5px solid var(--accent);
+    transform: translateY(-0.15rem) rotate(45deg);
+    transition: transform var(--dur-1) var(--ease-out);
+  }
+
+  .legal__toc[open] .legal__toc-mark {
+    transform: translateY(0.15rem) rotate(-135deg);
+  }
+
+  .legal__toc-list {
+    margin: 0;
+    padding: 0 var(--space-5) var(--space-3);
+    border-top: 1px solid var(--line);
+  }
+
+  .legal__toc-list li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  .legal__toc-list a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    min-height: 2.75rem;
+    padding: 0.65rem 0;
+    font-size: var(--step--1);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--dur-1) var(--ease-out);
+  }
+
+  .legal__toc-num {
+    flex: none;
+    min-width: 2ch;
+    font-size: var(--step-0);
+    color: var(--accent);
+  }
+
+  .legal__toc-list a:hover,
+  .legal__toc-list a:focus-visible {
+    color: var(--text);
+  }
+
+  /* ---------- the document ---------- */
+  .legal__body {
+    max-width: 46em;
+    overflow-wrap: break-word;
+  }
+
+  .legal__body :global(h2) {
+    margin-top: 2.6em;
+    padding-top: 1.1em;
+    font-size: var(--step-3);
+    line-height: 1;
+    letter-spacing: 0.01em;
+    border-top: 1px solid var(--line-strong);
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  .legal__body :global(h2 + *) {
+    margin-top: 1em;
+  }
+
+  .legal__body :global(.legal-num) {
+    color: var(--accent);
+    margin-right: 0.2em;
+  }
+
+  .legal__body :global(.legal-title) {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+
+  .legal__body :global(.legal-date) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    margin-top: 0;
+    padding: 0.5em 1em;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .legal__body :global(.legal-date)::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .legal__body :global(.legal-title + .legal-date) {
+    margin-top: 1.15em;
+  }
+
+  .legal__body :global(.legal-date + p) {
+    margin-top: 1.75em;
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .legal__body :global(li::marker) {
+    color: var(--accent);
+  }
+
+  /* ---------- closing line ---------- */
+  .legal__questions {
+    display: grid;
+    gap: 1.1rem;
+    max-width: 46em;
+    margin-top: var(--space-8);
+    padding: clamp(1.4rem, 1rem + 1.4vw, 2.25rem);
+    background:
+      radial-gradient(90% 80% at 100% 0%, rgb(95 175 255 / 0.18), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .legal__questions-title {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .legal__questions-links {
+    display: grid;
+    gap: 0.25rem 2rem;
+  }
+
+  @media (min-width: 48em) {
+    .legal__questions-links {
+      grid-auto-flow: column;
+      justify-content: start;
+    }
+  }
+
+  .legal__questions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .legal__questions a :global(.icon) {
+    flex: none;
+    color: var(--accent);
+  }
+
+  .legal__questions a:hover {
+    color: var(--accent-strong);
+  }
+
+  @media (min-width: 60em) {
+    .legal--toc {
+      grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+
+    .legal__nav {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      max-height: calc(100dvh - var(--header-h) - 4rem);
+      overflow-y: auto;
+    }
+
+    .legal__toc {
+      border: 0;
+      border-radius: 0;
+      background: none;
+    }
+
+    .legal__toc-summary {
+      min-height: 0;
+      padding: 0 0 var(--space-4);
+      pointer-events: none;
+    }
+
+    .legal__toc-mark {
+      display: none;
+    }
+
+    .legal__toc-list {
+      padding: 0;
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .legal__toc-list li + li {
+      border-top: 0;
+    }
+
+    .legal__toc-list li {
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .legal__main {
+      padding-top: 0.2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .legal__toc-mark,
+    .legal__toc-list a {
+      transition: none;
+    }
+  }
+</style>

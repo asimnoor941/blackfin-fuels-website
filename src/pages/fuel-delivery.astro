@@ -1,0 +1,431 @@
+---
+/**
+ * Fuel Delivery: what the service is, why it saves time, and a short version
+ * of how it works. Same editorial language as the home page; 3D effects sit on
+ * the content and follow the scroll (stage, swing, flip + draw, table).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ServiceHero from '../components/service/ServiceHero.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Button from '../components/Button.astro';
+import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
+import VideoClip from '../components/VideoClip.astro';
+import { contact, ORDER_URL } from '../data/site';
+import '../components/service/service.css';
+
+import hosePoster from '../assets/posters/hose-run.jpg';
+import truckPhoto from '../assets/photos/driver-hose-truck.jpg';
+import dockWalk from '../assets/photos/dock-hose-walk.jpg';
+import boatLift from '../assets/photos/fueling-boat-lift.jpg';
+import nozzle from '../assets/photos/nozzle-closeup.jpg';
+
+const benefits = [
+  {
+    title: 'Save Time',
+    text: 'No longer worry about going to fuel up your boat at the marina. Experience the convenience of marine fuel delivery.',
+    phone: false,
+  },
+  {
+    title: 'Let’s Get Started',
+    text: 'Easy scheduling you can do right through your phone. We offer prompt and responsive customer service.',
+    phone: false,
+  },
+  {
+    title: 'Friendly Support',
+    text: 'Message or call us to get notified of exclusives. For more information on our services call or message us.',
+    phone: true,
+  },
+];
+
+const steps = [
+  {
+    title: 'Request Fuel',
+    text: 'Order directly from our app, give us a call or send us a text with your dock location, gallons needed, and preferred delivery window.',
+    icon: 'smartphone',
+  },
+  {
+    title: 'We Keep You Updated',
+    text: 'We’ll text you what day you are in the route with a two-hour delivery window, then send another text when you’re the next stop on our route.',
+    icon: 'message',
+  },
+  {
+    title: 'We Fuel Your Boat',
+    text: 'Our trained, insured driver fuels your boat dockside. You receive your receipt and invoice after delivery.',
+    icon: 'drop',
+  },
+  {
+    title: 'Easy Payment',
+    text: 'Receive your invoice after delivery.',
+    icon: 'card',
+    link: { href: '/make-payment/', label: 'Ways to pay' },
+  },
+] as const;
+---
+
+<BaseLayout
+  title="Boat Fuel Delivery to Your Dock"
+  description="Blackfin Fuels delivers boat fuel promptly to your dock. A hazmat-certified driver pumps the fuel directly into your vessel, so you don't have to."
+  breadcrumbs={[{ name: 'Fuel Delivery', href: '/fuel-delivery/' }]}
+>
+  <!-- ============ HERO ============ -->
+  <ServiceHero
+    eyebrow="What We Do"
+    title='What is <span class="accent">fuel delivery?</span>'
+    lede="Blackfin Fuels Delivery of Punta Gorda is a fuel delivery service, where we deliver boat fuel promptly to your dock by utilizing our skilled hazmat-certified delivery driver. Then, our team member will pump the fuel directly into your vessel, so you don't have to!"
+  >
+    <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+    <Button href="/pricing/" variant="ghost" size="lg" arrow={false}>Pricing</Button>
+
+    <div slot="stage" class="svc-stage" data-3d="stage">
+      <VideoClip
+        src="/video/hose-run.mp4"
+        poster={hosePoster}
+        ratio="21 / 9"
+        label="A Blackfin Fuels driver unlocks the tanker and runs the fuel hose across a lawn toward the dock"
+      />
+      <ul class="svc-facts svc-facts--over" role="list">
+        <li><span class="numeral">350<small>ft</small></span><span>Hose reach</span></li>
+        <li><span class="numeral">Rec 90</span><span>Ethanol free</span></li>
+        <li><span class="numeral">$0</span><span>Delivery fee</span></li>
+      </ul>
+    </div>
+  </ServiceHero>
+
+  <!-- ============ BENEFITS: sticky copy + photo beside ruled rows ============ -->
+  <section class="svc-band svc-band--base fd-why">
+    <div class="container fd-why__grid">
+      <div class="fd-why__aside">
+        <div data-reveal>
+          <p class="eyebrow">Why Dock Delivery</p>
+          <h2 class="fd-why__title">The fuel comes to your boat</h2>
+        </div>
+        <div class="fd-why__photo" data-3d="swing" data-3d-from="left" data-3d-strength="0.7">
+          <Photo
+            src={truckPhoto}
+            alt="Blackfin Fuels driver pulling the green fuel hose from the reel of a tanker truck"
+            ratio="4 / 3"
+            position="42% 50%"
+            reveal={false}
+            sizes="(min-width: 62em) 40vw, 92vw"
+          />
+        </div>
+      </div>
+
+      <ol class="fd-why__list" role="list">
+        {
+          benefits.map((b, i) => (
+            <li class="benefit" data-reveal>
+              <span class="benefit__index svc-outline" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <div class="benefit__body">
+                <h3 class="benefit__title">{b.title}</h3>
+                <p>{b.text}</p>
+                <div class="benefit__links">
+                  <Button href={ORDER_URL} variant="link" class="svc-tap">
+                    Order Fuel
+                  </Button>
+                  {b.phone && (
+                    <Button href={contact.phoneHref} variant="link" icon="phone" arrow={false} class="svc-tap">
+                      {contact.phoneDisplay}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS (short) ============ -->
+  <section class="svc-band svc-band--raised fd-how">
+    <div class="container">
+      <header class="svc-head svc-head--split">
+        <div data-reveal>
+          <p class="eyebrow">How It Works</p>
+          <h2>Four steps. Fuel at your dock.</h2>
+        </div>
+        <p class="lede" data-reveal>No marina lines. No fuel docks. Just reliable fuel delivered directly to your boat.</p>
+      </header>
+
+      <svg class="fd-how__hose" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 60 C 150 10, 250 110, 400 60 S 650 10, 800 60 S 1050 110, 1200 60" data-3d="draw"></path>
+      </svg>
+
+      <ol class="fd-how__steps" role="list" data-3d="flip">
+        {
+          steps.map((step, i) => (
+            <li class="step svc-card">
+              <div class="step__top">
+                <span class="step__num numeral">0{i + 1}</span>
+                <span class="step__icon">
+                  <Icon name={step.icon} size={22} />
+                </span>
+              </div>
+              <h3 class="step__title">{step.title}</h3>
+              <p>{step.text}</p>
+              {'link' in step && (
+                <Button href={step.link.href} variant="link" class="svc-tap step__link">
+                  {step.link.label}
+                </Button>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ ON THE DOCK: photos stand up from the table ============ -->
+  <section class="svc-band svc-band--deep fd-dock">
+    <div class="container">
+      <header class="svc-head svc-head--split">
+        <div data-reveal>
+          <p class="eyebrow">On The Dock</p>
+          <h2>We pump it. You don’t have to.</h2>
+        </div>
+        <p class="lede" data-reveal>
+          Our skilled, hazmat-certified delivery driver brings the hose to your dock and pumps the fuel directly into your vessel.
+        </p>
+      </header>
+
+      <div class="fd-dock__wall" data-3d="table" data-3d-strength="0.8">
+        <Photo src={dockWalk} alt="Driver walking the fuel hose down a long private dock to a boat lift" ratio="4 / 5" class="fd-dock__a" reveal={false} sizes="(min-width: 60em) 34vw, 92vw" />
+        <Photo src={boatLift} alt="Blackfin Fuels driver in a branded shirt pumping fuel into a boat on a lift at a canal-side dock" ratio="4 / 3" class="fd-dock__b" reveal={false} sizes="(min-width: 60em) 40vw, 92vw" />
+        <Photo src={nozzle} alt="Red fuel nozzle in a boat's fuel fill at a dock, with an absorbent pad wrapped around it" ratio="4 / 3" class="fd-dock__c" reveal={false} sizes="(min-width: 60em) 26vw, 92vw" />
+      </div>
+    </div>
+  </section>
+
+  <CtaBand eyebrow="Request Fuel" title="Ready to Get<br />Fueled Up?" text="Click below to get started.">
+    <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  /* ---------- benefits ---------- */
+  .fd-why__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .fd-why__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .fd-why__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .fd-why__aside > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .fd-why__title {
+    font-size: var(--step-4);
+    max-width: 12ch;
+  }
+
+  .fd-why__photo {
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    perspective: 1500px;
+  }
+
+  .fd-why__photo :global(.photo) {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .fd-why__list {
+    margin: 0;
+  }
+
+  .benefit {
+    position: relative;
+    display: grid;
+    padding-block: clamp(2rem, 1.4rem + 2.6vw, 3.5rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .benefit:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .benefit__index {
+    position: absolute;
+    top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    right: 0;
+    font-size: clamp(4.1rem, 2.25rem + 4.08vw, 6.65rem);
+  }
+
+  @media (max-width: 47.99em) {
+    .benefit__index {
+      position: static;
+      margin-bottom: 1rem;
+      font-size: 4.5rem;
+    }
+  }
+
+  .benefit__body {
+    position: relative;
+    max-width: 30rem;
+  }
+
+  .benefit__body > :global(* + *) {
+    margin-top: 1rem;
+  }
+
+  .benefit__title {
+    font-size: var(--step-4);
+    line-height: 0.95;
+  }
+
+  .benefit__body p {
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .benefit__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.75rem;
+  }
+
+  /* ---------- how it works ---------- */
+  .fd-how__hose {
+    display: none;
+    width: 100%;
+    height: 4.5rem;
+    margin-bottom: -1.5rem;
+    overflow: visible;
+  }
+
+  .fd-how__hose path {
+    fill: none;
+    stroke: #2f8f4e;
+    stroke-width: 6;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  @media (min-width: 62em) {
+    .fd-how__hose {
+      display: block;
+    }
+  }
+
+  .fd-how__steps {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  @media (min-width: 40em) {
+    .fd-how__steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 62em) {
+    .fd-how__steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .step {
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+  }
+
+  .step__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .step__num {
+    font-size: var(--step-4);
+    color: var(--accent);
+  }
+
+  .step__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .step__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  .step p {
+    margin-top: 0.75rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  .step :global(.step__link) {
+    margin-top: 0.75rem;
+  }
+
+  /* ---------- on the dock ---------- */
+  .fd-dock {
+    overflow: clip;
+  }
+
+  .fd-dock__wall {
+    display: grid;
+    gap: clamp(0.6rem, 0.3rem + 1vw, 1.25rem);
+  }
+
+  .fd-dock__wall :global(.photo) {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 40em) {
+    .fd-dock__wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .fd-dock__wall :global(.fd-dock__a) {
+      grid-row: span 2;
+    }
+  }
+
+  @media (min-width: 60em) {
+    .fd-dock__wall {
+      grid-template-columns: 1fr 1.25fr 0.85fr;
+      align-items: start;
+    }
+    .fd-dock__wall :global(.fd-dock__a) {
+      grid-row: auto;
+    }
+    .fd-dock__wall :global(.fd-dock__b) {
+      margin-top: 4rem;
+    }
+    .fd-dock__wall :global(.fd-dock__c) {
+      margin-top: 1.5rem;
+    }
+  }
+</style>

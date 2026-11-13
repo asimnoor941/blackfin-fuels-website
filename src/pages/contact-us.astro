@@ -1,0 +1,326 @@
+---
+/**
+ * /contact-us/ : call, text and email as large tap targets, the service area
+ * and the click-to-load Google map. Same language as the home page: big Anton
+ * hero with the dock photo standing up on scroll, hairline rows, sticky copy
+ * beside the map.
+ * Copy: reference/original-site/content/contact-us.md
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Button from '../components/Button.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import ContactMethods from '../components/support/ContactMethods.astro';
+import LazyMap from '../components/support/LazyMap.astro';
+import SupportHero from '../components/support/SupportHero.astro';
+import { cities, contact } from '../data/site';
+
+import heroPhoto from '../assets/photos/dock-hose-walk.jpg';
+import aerialPhoto from '../assets/places/gulf-aerial.jpg';
+
+// Order as written on the live contact page.
+const areaOrder = ['fort-myers', 'cape-coral', 'punta-gorda', 'sarasota', 'bradenton'];
+const areas = areaOrder.map((slug) => cities.find((city) => city.slug === slug)).filter((city) => city !== undefined);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<BaseLayout
+  title="Contact Our Team: Call, Text or Email"
+  description="Marine fuel delivery across Southwest Florida's Gulf Coast. Call, text or email Blackfin Fuels and we'll get you scheduled, from Fort Myers to Bradenton."
+  breadcrumbs={[{ name: 'Contact Us', href: '/contact-us/' }]}
+>
+  <!-- ============ HERO ============ -->
+  <SupportHero
+    eyebrow="Get In Touch"
+    title="Contact Our Team"
+    lede="Marine fuel delivery across Southwest Florida's Gulf Coast. Reach out and we'll get you scheduled."
+  >
+    <Button href={contact.phoneHref} size="lg" icon="phone" arrow={false}>{contact.phoneDisplay}</Button>
+    <Button href={contact.smsHref} variant="ghost" size="lg" icon="message" arrow={false}>Text Us</Button>
+
+    <div slot="media" class="hero-media">
+      <Photo
+        src={heroPhoto}
+        alt="Blackfin Fuels driver walking a green fuel hose down a wooden dock toward two covered boat lifts on open water"
+        ratio="21 / 9"
+        position="50% 62%"
+        sizes="(min-width: 80em) 77rem, 94vw"
+        reveal={false}
+        eager
+      />
+      <p class="hero-media__area">
+        <span class="hero-media__label"><Icon name="map-pin" size={16} /> Service Area</span>
+        <span class="hero-media__cities">Fort Myers, Cape Coral, Punta Gorda, Sarasota, Bradenton</span>
+      </p>
+    </div>
+  </SupportHero>
+
+  <!-- ============ REACH US ============ -->
+  <section class="reach" id="reach-us" aria-labelledby="reach-us-title">
+    <div class="container reach__grid">
+      <div class="reach__main">
+        <div class="reach__head" data-reveal>
+          <p class="eyebrow">Reach Us</p>
+          <h2 id="reach-us-title">Call, Text or&nbsp;Email</h2>
+        </div>
+        <ContactMethods />
+      </div>
+
+      <div class="reach__media" data-3d="swing" data-3d-strength="0.7">
+        <Photo
+          src={aerialPhoto}
+          alt="Aerial view of a motorboat leaving a long white wake past moored sailboats on blue-green water"
+          ratio="4 / 5"
+          sizes="(min-width: 60em) 26rem, 80vw"
+          widths={[320, 480]}
+          position="50% 35%"
+          reveal={false}
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MAP ============ -->
+  <section class="map" id="service-area" aria-labelledby="service-area-title">
+    <div class="container map__grid">
+      <div class="map__copy" data-reveal>
+        <p class="eyebrow">Service Area</p>
+        <h2 id="service-area-title">Find Us on the&nbsp;Map</h2>
+        <ol class="map__areas" role="list">
+          {
+            areas.map((city, i) => (
+              <li>
+                <a class="area" href={`/${city.slug}/`}>
+                  <span class="area__num numeral">{pad(i + 1)}</span>
+                  <span class="area__name">{city.name}</span>
+                  <Icon name="arrow-up-right" size={18} />
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+      <div class="map__frame">
+        <LazyMap
+          src="https://www.google.com/maps?q=Blackfin+Fuels+Delivery+of+Punta+Gorda&output=embed"
+          title="Google Map showing Blackfin Fuels Delivery of Punta Gorda"
+          place="Blackfin Fuels Delivery of Punta Gorda"
+        />
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Ready to Get<br />Fueled Up?"
+    text="Rec 90 delivered to your dock, lift, or slip. Request a delivery and we'll confirm your scheduled window."
+  />
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ---------- hero media ---------- */
+  .hero-media {
+    position: relative;
+    background: var(--navy-900);
+  }
+
+  .hero-media__area {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 1.1rem clamp(1rem, 0.6rem + 1.5vw, 1.6rem);
+    background: rgb(9 23 36 / 0.86);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  @media (min-width: 48em) {
+    .hero-media__area {
+      position: absolute;
+      left: clamp(1rem, 3vw, 2.5rem);
+      bottom: clamp(1rem, 3vw, 2.5rem);
+      width: min(30rem, 60%);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+
+  .hero-media__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .hero-media__cities {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+  }
+
+  /* ---------- reach us ---------- */
+  .reach {
+    padding-block: var(--section-pad);
+    overflow-x: clip;
+    background:
+      radial-gradient(70% 40% at 80% 40%, rgb(55 138 221 / 0.12), transparent 70%),
+      var(--navy-900);
+  }
+
+  .reach__grid {
+    display: grid;
+    gap: clamp(3rem, 2rem + 4vw, 5rem);
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .reach__grid {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr);
+      gap: 5rem;
+    }
+  }
+
+  .reach__main {
+    min-width: 0;
+  }
+
+  .reach__head {
+    margin-bottom: clamp(1.75rem, 1.2rem + 2vw, 3rem);
+  }
+
+  .reach__head h2 {
+    margin-top: 1.1rem;
+    font-size: var(--step-5);
+    line-height: 0.92;
+  }
+
+  .reach__media {
+    width: min(100%, 26rem);
+    justify-self: center;
+  }
+
+  .reach__media :global(.photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (max-width: 59.99em) {
+    .reach__media {
+      width: min(100%, 22rem);
+    }
+  }
+
+  /* ---------- map ---------- */
+  .map {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .map__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .map__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .map__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .map__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .map__areas {
+    margin-top: 2.25rem !important;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .area {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 1rem;
+    min-height: 4rem;
+    padding-block: 0.75rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line-strong);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      padding var(--dur-2) var(--ease-out);
+  }
+
+  .area__num {
+    font-size: var(--step-1);
+    color: var(--accent);
+  }
+
+  .area__name {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+
+  .area :global(.icon) {
+    color: var(--text-faint);
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .area:hover,
+  .area:focus-visible {
+    background: rgb(95 175 255 / 0.06);
+    padding-inline: 0.75rem;
+  }
+
+  .area:hover :global(.icon),
+  .area:focus-visible :global(.icon) {
+    color: var(--accent);
+    transform: translate(3px, -3px);
+  }
+
+  .map__frame {
+    min-width: 0;
+    perspective: 1500px;
+  }
+
+  .map__frame :global(.lazy-map) {
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 62em) {
+    .map__frame :global(.lazy-map) {
+      aspect-ratio: 4 / 3.4;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .area,
+    .area :global(.icon) {
+      transition: none;
+    }
+  }
+</style>

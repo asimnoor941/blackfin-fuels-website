@@ -1,0 +1,784 @@
+---
+/**
+ * City landing pages: /bradenton/, /sarasota/, /punta-gorda/, /fort-myers/, /cape-coral/.
+ * One template; the copy for each city lives in src/content/cities/<slug>.md and
+ * the zone schedule and minimum in src/components/city/zones.ts.
+ *
+ * Same design language as the home page. Scroll-driven 3D on four elements:
+ * hero photo (stage), story photo (swing), delivery steps (flip, in
+ * CityDelivery) and the tanker cut-out (turn). Nothing moves on load.
+ */
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Photo from '../components/Photo.astro';
+import Contours from '../components/Contours.astro';
+import PriceTag from '../components/PriceTag.astro';
+import CityDelivery from '../components/city/CityDelivery.astro';
+import CityLinks from '../components/city/CityLinks.astro';
+import { zones } from '../components/city/zones';
+import { contact, ORDER_URL, site } from '../data/site';
+
+import capeCoralCanal from '../assets/places/cape-coral-canal.jpg';
+import hoseReel from '../assets/photos/hose-reel-detail.jpg';
+import dockHoseWalk from '../assets/photos/dock-hose-walk.jpg';
+import fuelingBoatLift from '../assets/photos/fueling-boat-lift.jpg';
+import driverHoseTruck from '../assets/photos/driver-hose-truck.jpg';
+import truckFreightliner from '../assets/trucks/freightliner-2800.webp';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('cities');
+  return entries.map((entry) => ({ params: { city: entry.id }, props: { entry } }));
+}
+
+/** Frontmatter cannot import images, so it names one of these keys. */
+const images: Record<string, ImageMetadata> = {
+  'cape-coral-canal': capeCoralCanal,
+  'hose-reel-detail': hoseReel,
+  'dock-hose-walk': dockHoseWalk,
+  'fueling-boat-lift': fuelingBoatLift,
+  'driver-hose-truck': driverHoseTruck,
+};
+
+const { entry } = Astro.props;
+const city = entry.data;
+const { Content } = await render(entry);
+const path = `/${entry.id}/`;
+const zone = zones[entry.id];
+
+/** "Marine Fuel Delivery Services in" + the city name, set on two lines. */
+const titleLead = city.title.endsWith(city.name) ? city.title.slice(0, -city.name.length).trim() : '';
+
+const heroFacts = [
+  zone?.minimum ? { value: zone.minimum, unit: 'gal', label: 'Minimum order' } : { value: 'Rec 90', unit: '', label: 'Ethanol free' },
+  { value: '350', unit: 'ft', label: 'Hose reach' },
+  { value: '$0', unit: '', label: 'Delivery fee' },
+];
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  '@id': `${site.url}${path}#service`,
+  name: city.title,
+  serviceType: 'Marine fuel delivery',
+  description: city.description,
+  url: `${site.url}${path}`,
+  areaServed: { '@type': 'City', name: `${city.name}, Florida` },
+  provider: { '@id': `${site.url}/#organization` },
+};
+---
+
+<BaseLayout
+  title={city.title}
+  description={city.description}
+  breadcrumbs={[
+    { name: 'Service Areas', href: '/service-areas/' },
+    { name: city.name, href: path },
+  ]}
+  jsonLd={serviceSchema}
+>
+  <!-- ============ HERO ============ -->
+  <section class="chero">
+    <Contours class="chero__lines" lines={20} />
+    <div class="container chero__top">
+      <span class="chero__index numeral" aria-hidden="true">0{city.order}</span>
+      <p class="eyebrow">{city.eyebrow} · {city.name}, Florida</p>
+      <h1 class="chero__title">
+        {titleLead && <span class="chero__lead">{titleLead}</span>}
+        <span class="chero__city">{city.name}</span>
+      </h1>
+      <div class="chero__row">
+        <p class="lede">{city.intro}</p>
+        <div class="cluster chero__ctas">
+          <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+          <Button href={contact.phoneHref} variant="ghost" size="lg" icon="phone" arrow={false}>{contact.phoneDisplay}</Button>
+        </div>
+      </div>
+      <PriceTag class="chero__price" />
+    </div>
+
+    <div class="container chero__stage-wrap">
+      <div class="chero__stage" data-3d="stage">
+        <div class="chero__media" style={`--pos: ${city.heroPosition}`}>
+          <Picture
+            src={images[city.heroImage]}
+            alt={city.heroAlt}
+            formats={['avif', 'webp']}
+            widths={[640, 960, 1280, 1600, 2000]}
+            sizes="(min-width: 80em) 77rem, 94vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <ul class="chero__facts" role="list">
+          {
+            heroFacts.map((f) => (
+              <li>
+                <span class="numeral">
+                  {f.value}
+                  {f.unit && <small>{f.unit}</small>}
+                </span>
+                <span>{f.label}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ZONE FACTS ============ -->
+  {
+    zone && (
+      <section class="zone" aria-labelledby="zone-title">
+        <div class="container zone__grid">
+          <div class="zone__copy" data-reveal>
+            <p class="eyebrow">Your delivery zone</p>
+            <h2 id="zone-title">{zone.name}</h2>
+            <p class="zone__text">{zone.text}</p>
+            <ul class="zone__tags cluster" role="list">
+              {zone.tags.map((t) => (
+                <li class="tag">{t}</li>
+              ))}
+            </ul>
+          </div>
+          <dl class="zone__rows" data-reveal-group>
+            <div data-reveal>
+              <dt>Route schedule</dt>
+              <dd class="numeral zone__sched">{zone.schedule}</dd>
+            </div>
+            {zone.minimum && (
+              <div data-reveal>
+                <dt>Minimum order</dt>
+                <dd class="numeral">
+                  {zone.minimum}
+                  <small>gal</small>
+                </dd>
+              </div>
+            )}
+            <div data-reveal>
+              <dt>Fuel</dt>
+              <dd class="numeral">Rec 90</dd>
+            </div>
+            <div data-reveal>
+              <dt>Delivery fee</dt>
+              <dd class="numeral">$0</dd>
+            </div>
+            <div data-reveal>
+              <dt>Billing</dt>
+              <dd class="numeral zone__sched">After delivery</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- ============ LOCAL STORY ============ -->
+  <section class="story" id="delivery" aria-labelledby="delivery-title">
+    <div class="container story__grid">
+      <div class="story__aside">
+        <div data-reveal>
+          <p class="eyebrow">{city.eyebrow}</p>
+          <h2 id="delivery-title">{city.heading}</h2>
+        </div>
+        <div class="story__photo" data-3d="swing" data-3d-from="left" data-3d-strength="0.6">
+          <Photo src={images[city.bodyImage]} alt={city.bodyAlt} ratio="4 / 5" reveal={false} sizes="(min-width: 60em) 36vw, 92vw" />
+        </div>
+      </div>
+      <div class="prose story__prose" data-reveal>
+        <Content />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW DELIVERY WORKS (steps flip up) ============ -->
+  <CityDelivery city={city.name} />
+
+  <!-- ============ ROUTE ============ -->
+  <section class="route" aria-labelledby="route-title">
+    <div class="container route__grid">
+      <div class="route__copy" data-reveal>
+        <p class="eyebrow">Service Areas</p>
+        <h2 id="route-title">Bradenton to Cape Coral</h2>
+        <p class="lede">Marine fuel delivery across Southwest Florida’s Gulf Coast. Scheduled routes, no marina lines.</p>
+        <Button href="/service-areas/" variant="ghost">All service areas</Button>
+      </div>
+      <CityLinks current={entry.id} />
+    </div>
+  </section>
+
+  <!-- ============ BOOK (tanker turns as you scroll) ============ -->
+  <section class="book" aria-labelledby="book-title">
+    <Contours class="book__lines" lines={14} />
+    <div class="container book__grid">
+      <div class="book__copy" data-reveal>
+        <p class="eyebrow">Request Fuel</p>
+        <h2 id="book-title" class="book__title" set:html={city.ctaHeading} />
+        <p class="lede">{city.ctaText}</p>
+        <PriceTag size="lg" class="book__price" />
+        <div class="cluster book__ctas">
+          <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+          <Button href={contact.phoneHref} variant="ghost" size="lg" icon="phone" arrow={false}>Call Us Directly</Button>
+        </div>
+        <ul class="checklist book__list">
+          <li>Rec 90, ethanol-free premium</li>
+          <li>Delivered to your dock, lift, or slip</li>
+          <li>Invoice sent after delivery</li>
+        </ul>
+      </div>
+
+      <div class="book__truck">
+        <span class="book__index numeral" aria-hidden="true">Rec 90</span>
+        <div class="book__img" data-3d="turn" data-3d-strength="0.8">
+          <Picture
+            src={truckFreightliner}
+            alt="Grey Blackfin Fuels 2,800 gallon tanker truck"
+            formats={['avif', 'webp']}
+            widths={[480, 800, 1200, 1600]}
+            sizes="(min-width: 62em) 50vw, 92vw"
+            loading="lazy"
+          />
+        </div>
+        <div class="book__floor" aria-hidden="true"></div>
+        <dl class="book__specs">
+          <div>
+            <dt>Tank capacity</dt>
+            <dd class="numeral">2,800<small>gal</small></dd>
+          </div>
+          <div>
+            <dt>Hose reach</dt>
+            <dd class="numeral">350<small>ft</small></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  small {
+    margin-left: 0.15em;
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+
+  /* ---------- hero ---------- */
+  .chero {
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+  }
+
+  .chero :global(.chero__lines) {
+    position: absolute;
+    inset: 22% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.4;
+  }
+
+  .chero__top {
+    position: relative;
+  }
+
+  .chero__index {
+    position: absolute;
+    top: -0.15em;
+    right: var(--gutter);
+    z-index: -1;
+    font-size: clamp(5.74rem, 2.25rem + 10.88vw, 13.3rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+  }
+
+  .chero__title {
+    margin-top: 1.4rem;
+  }
+
+  .chero__lead {
+    display: block;
+    font-size: var(--step-2);
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+  }
+
+  .chero__city {
+    display: block;
+    margin-top: 0.15em;
+    font-size: clamp(2.79rem, 0.75rem + 6.46vw, 7.7rem);
+    line-height: 0.88;
+    color: var(--accent);
+    overflow-wrap: anywhere;
+  }
+
+  .chero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .chero__row :global(.lede) {
+    max-width: 36em;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  @media (min-width: 60em) {
+    .chero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  .chero :global(.chero__price) {
+    margin-top: 1.75rem;
+  }
+
+  .chero__stage-wrap {
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    perspective: 1600px;
+  }
+
+  .chero__stage {
+    position: relative;
+    border-radius: var(--radius-lg);
+    /* Resting pose before any scroll; motion.ts takes over once the page scrolls. */
+    transform: perspective(1600px) rotateX(22deg) scale(0.88);
+    transform-origin: 50% 0%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chero__stage {
+      transform: none;
+    }
+  }
+
+  .chero__media {
+    overflow: hidden;
+    aspect-ratio: 21 / 9;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 0 0 1px var(--line-strong);
+  }
+
+  @media (max-width: 47.99em) {
+    .chero__media {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  .chero__media :global(picture) {
+    display: block;
+    height: 100%;
+  }
+
+  .chero__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--pos, 50% 50%);
+  }
+
+  .chero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    background: rgb(9 23 36 / 0.86);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .chero__facts li {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem clamp(0.7rem, 0.4rem + 1.5vw, 1.6rem);
+  }
+
+  .chero__facts li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  .chero__facts .numeral {
+    font-size: clamp(1.4rem, 1rem + 2vw, 2.6rem);
+    white-space: nowrap;
+  }
+
+  .chero__facts small {
+    font-size: 0.5em;
+  }
+
+  .chero__facts li > span:last-child {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48em) {
+    .chero__facts {
+      position: absolute;
+      left: clamp(1rem, 3vw, 2.5rem);
+      bottom: clamp(1rem, 3vw, 2.5rem);
+      width: min(36rem, 62%);
+    }
+  }
+
+  @media (max-width: 47.99em) {
+    .chero__facts {
+      margin-top: 0.75rem;
+    }
+  }
+
+  /* ---------- zone ---------- */
+  .zone {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, var(--ink), var(--abyss));
+    border-block: 1px solid var(--line);
+  }
+
+  .zone__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .zone__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 5rem;
+      align-items: center;
+    }
+  }
+
+  .zone__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .zone__copy h2 {
+    font-size: var(--step-5);
+    line-height: 0.92;
+  }
+
+  .zone__text {
+    max-width: 34em;
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  .zone__tags {
+    margin-top: 1.75rem;
+    padding: 0;
+  }
+
+  .zone__rows {
+    display: grid;
+    margin: 0;
+  }
+
+  .zone__rows > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .zone__rows > div:first-child {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .zone__rows dt {
+    flex: none;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .zone__rows dd {
+    margin: 0;
+    font-size: var(--step-3);
+    text-align: right;
+  }
+
+  .zone__rows dd.zone__sched {
+    font-size: clamp(1.15rem, 0.8rem + 1.6vw, 1.9rem);
+  }
+
+  /* ---------- story ---------- */
+  .story {
+    padding-block: var(--section-pad);
+    background:
+      radial-gradient(60% 40% at 10% 20%, rgb(55 138 221 / 0.12), transparent 70%),
+      var(--navy-900);
+  }
+
+  .story__grid {
+    display: grid;
+    gap: clamp(2.5rem, 1rem + 5vw, 5.5rem);
+  }
+
+  .story__aside > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .story__aside h2 {
+    max-width: 12ch;
+  }
+
+  .story__photo {
+    max-width: 30rem;
+    margin-top: clamp(2rem, 1.4rem + 2vw, 3rem);
+  }
+
+  .story__photo :global(.photo) {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 60em) {
+    .story__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      align-items: start;
+    }
+
+    .story__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+
+    .story__photo {
+      max-width: 26rem;
+    }
+  }
+
+  .story__prose {
+    counter-reset: chapter;
+    max-width: 40em;
+  }
+
+  .story__prose > :global(p:first-child) {
+    font-size: var(--step-1);
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .story__prose :global(p) {
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+
+  .story__prose :global(h3) {
+    counter-increment: chapter;
+    position: relative;
+    margin-top: clamp(2.5rem, 2rem + 1.5vw, 3.5rem);
+    padding-top: 1.5rem;
+    padding-right: 4.5rem;
+    font-size: var(--step-3);
+    line-height: 1;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .story__prose :global(h3::after) {
+    content: counter(chapter, decimal-leading-zero);
+    position: absolute;
+    top: 1.1rem;
+    right: 0;
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+  }
+
+  .story__prose > :global(h3:first-child) {
+    margin-top: 0;
+  }
+
+  .story__prose :global(h3 + p) {
+    margin-top: 1rem;
+  }
+
+  /* ---------- route ---------- */
+  .route {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, var(--ink), var(--abyss));
+    border-block: 1px solid var(--line);
+  }
+
+  .route__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .route__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .route__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .route__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .route__copy :global(.btn) {
+    margin-top: 2rem;
+  }
+
+  /* ---------- book ---------- */
+  .book {
+    isolation: isolate;
+    padding-block: var(--section-pad);
+    overflow: clip;
+    background:
+      radial-gradient(70% 80% at 90% 100%, rgb(55 138 221 / 0.36), transparent 68%),
+      linear-gradient(180deg, var(--navy-900), #0a2038);
+  }
+
+  .book :global(.book__lines) {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: -1;
+    opacity: 0.45;
+  }
+
+  .book__grid {
+    display: grid;
+    gap: 3.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 62em) {
+    .book__grid {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 4rem;
+    }
+  }
+
+  .book__copy > :global(* + *) {
+    margin-top: 1.3rem;
+  }
+
+  .book__title {
+    font-size: var(--step-4);
+    line-height: 0.92;
+  }
+
+  .book__copy :global(.lede) {
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  .book__copy :global(.book__price) {
+    margin-top: 2rem;
+  }
+
+  .book__ctas {
+    margin-top: 2rem;
+  }
+
+  .book__list {
+    margin-top: 2rem;
+  }
+
+  .book__truck {
+    position: relative;
+    display: grid;
+    padding-top: clamp(2rem, 4vw, 4rem);
+    perspective: 1500px;
+  }
+
+  .book__index {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: clamp(4.1rem, 1.5rem + 6.8vw, 8.4rem);
+    line-height: 0.8;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+  }
+
+  .book__img {
+    position: relative;
+    z-index: 1;
+    transform-style: preserve-3d;
+  }
+
+  .book__img :global(img) {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.55));
+  }
+
+  .book__floor {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 5.5rem;
+    height: 14%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.28), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .book__specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin: 1.5rem 0 0;
+  }
+
+  .book__specs > div {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .book__specs dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .book__specs dd {
+    margin: 0.35rem 0 0;
+    font-size: var(--step-4);
+    white-space: nowrap;
+  }
+</style>

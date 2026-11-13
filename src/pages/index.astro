@@ -1,0 +1,1394 @@
+---
+/**
+ * Home. Editorial layout on the brand navy, with 3D effects on the content
+ * itself, driven by scroll (see src/scripts/motion.ts). Nothing animates on
+ * load: each part moves only while the visitor scrolls through it.
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Icon from '../components/Icon.astro';
+import Photo from '../components/Photo.astro';
+import VideoClip from '../components/VideoClip.astro';
+import PhoneFrame from '../components/PhoneFrame.astro';
+import StoreBadges from '../components/StoreBadges.astro';
+import OrderForm from '../components/OrderForm.astro';
+import Contours from '../components/Contours.astro';
+import PriceTag from '../components/PriceTag.astro';
+import { app, contact, reviews, ORDER_URL } from '../data/site';
+
+import hosePoster from '../assets/posters/hose-run.jpg';
+import handoffPoster from '../assets/posters/handoff.jpg';
+import truckFreightliner from '../assets/trucks/freightliner-2800.webp';
+import truckInternational from '../assets/trucks/international-2800.webp';
+import truckF550 from '../assets/trucks/f550-1000.webp';
+import dockWalk from '../assets/photos/dock-hose-walk.jpg';
+import nozzle from '../assets/photos/nozzle-closeup.jpg';
+import driverHose from '../assets/photos/driver-hose-truck.jpg';
+import boatLift from '../assets/photos/fueling-boat-lift.jpg';
+import reel from '../assets/photos/hose-reel-detail.jpg';
+import truckDoor from '../assets/photos/truck-door-palms.jpg';
+import mike from '../assets/team/mike.jpg';
+import screenHome from '../assets/app/home-savings.png';
+import screenOrders from '../assets/app/orders.png';
+import screenReferral from '../assets/app/referral.png';
+
+const steps = [
+  {
+    title: 'Request Fuel',
+    text: 'Order directly from our app, give us a call or send us a text with your dock location, gallons needed, and preferred delivery window.',
+    icon: 'smartphone',
+  },
+  {
+    title: 'We Keep You Updated',
+    text: 'We’ll text you what day you are in the route with a two-hour delivery window, then send another text when you’re the next stop on our route.',
+    icon: 'message',
+  },
+  {
+    title: 'We Fuel Your Boat',
+    text: 'Our trained, insured driver fuels your boat dockside. You receive your receipt and invoice after delivery.',
+    icon: 'drop',
+  },
+  {
+    title: 'Easy Payment',
+    text: 'Receive your invoice after delivery. Pay securely by ACH, credit card, check, or Zelle.',
+    icon: 'card',
+  },
+] as const;
+
+const fleet = [
+  { name: '2,800 Gallon', label: 'Rec90 Tanker', capacity: '2,800', image: truckFreightliner, alt: 'Grey Blackfin Fuels 2,800 gallon tanker truck' },
+  { name: '2,800 Gallon', label: 'Rec90 Tanker', capacity: '2,800', image: truckInternational, alt: 'White Blackfin Fuels 2,800 gallon tanker truck' },
+  { name: '1,000 Gallon', label: 'Rec90 Truck', capacity: '1,000', image: truckF550, alt: 'White Blackfin Fuels 1,000 gallon fuel truck' },
+];
+
+const standards = [
+  { icon: 'shield-check', title: 'Commercially Insured', text: 'Certificate of Insurance (COI) available. Spill compliant. Trained drivers. Documented safety procedures.' },
+  { icon: 'satellite', title: 'GPS-Routed Dispatch', text: 'GPS-tracked fuel trucks, scheduled routes, and reliable service windows. Professional logistics, not guesswork.' },
+  { icon: 'building', title: 'Commercial Accounts', text: 'We service charter operations, boat rental companies, and large fuel storage tanks.' },
+  { icon: 'users', title: 'Trained Professionals', text: 'Uniformed, trained drivers follow documented fueling and spill response procedures every time.' },
+  { icon: 'truck', title: 'Modern Fleet', text: 'Purpose-built fuel trucks, commercial equipment, and redundant systems designed for dependable marine fuel delivery.' },
+  { icon: 'message', title: 'Customer Communication', text: 'Order confirmations, ETA updates, digital receipts, and responsive support from scheduling through delivery.' },
+] as const;
+
+const zones = [
+  { name: 'Bradenton', note: 'Weekly · 100 gal min', href: '/bradenton/' },
+  { name: 'Sarasota', note: 'Weekly · 100 gal min', href: '/sarasota/' },
+  { name: 'Venice', note: 'Weekly · 100 gal min', href: '/service-areas/' },
+  { name: 'Englewood & Port Charlotte', note: 'Weekly · 100 gal min', href: '/service-areas/' },
+  { name: 'Punta Gorda', note: 'Multiple times / week', href: '/punta-gorda/' },
+  { name: 'Fort Myers & Cape Coral', note: 'Multiple times / week · 75 gal min', href: '/fort-myers/' },
+];
+---
+
+<BaseLayout
+  title="Home"
+  fullTitle="Marine Fuel Delivered to Your Dock | Blackfin Fuels"
+  description="Skip the marina stop. Blackfin Fuels delivers Rec 90 ethanol-free fuel to your dock, lift or waterfront home on a scheduled route from Bradenton to Cape Coral."
+  bodyClass="home"
+>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <Contours class="hero__lines" lines={22} />
+    <div class="container hero__top">
+      <p class="eyebrow">Marine fuel delivery · Southwest Florida</p>
+      <h1 class="hero__title">
+        <span class="hero__line">Skip the marina.</span>
+        <span class="hero__line hero__line--accent">We fuel you at the dock.</span>
+      </h1>
+      <div class="hero__row">
+        <p class="lede">
+          Rec 90 delivered directly to your dock, lift, or waterfront home, on a scheduled route from Bradenton to Cape Coral.
+        </p>
+        <div class="cluster hero__ctas">
+          <Button href={ORDER_URL} size="lg">Book Delivery</Button>
+          <Button href={contact.phoneHref} variant="ghost" size="lg" icon="phone" arrow={false}>{contact.phoneDisplay}</Button>
+        </div>
+      </div>
+      <PriceTag class="hero__price" />
+    </div>
+
+    <div class="container hero__stage-wrap">
+      <div class="hero__stage" data-3d="stage">
+        <VideoClip
+          src="/video/hose-run.mp4"
+          poster={hosePoster}
+          ratio="21 / 9"
+          label="A Blackfin Fuels driver unlocks the tanker and runs the fuel hose across a lawn toward the dock"
+          class="hero__video"
+        />
+        <ul class="hero__facts" role="list">
+          <li><span class="numeral">350<small>ft</small></span><span>Hose reach</span></li>
+          <li><span class="numeral">Rec 90</span><span>Ethanol free</span></li>
+          <li><span class="numeral">$0</span><span>Delivery fee</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INTRO / NUMBERS ============ -->
+  <section class="intro">
+    <div class="container intro__grid">
+      <h2 class="intro__statement" data-reveal>
+        A marine fuel <span class="accent">logistics company</span>, built on safety, systems, reliability and accountability.
+      </h2>
+      <dl class="intro__numbers" data-3d="pop-group">
+        <div><dt>Of gallons delivered</dt><dd class="numeral">Millions</dd></div>
+        <div><dt>Hose reach</dt><dd class="numeral">350<small>ft</small></dd></div>
+        <div><dt>Insured &amp; spill compliant</dt><dd class="numeral">COI</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ============ FLEET: trucks turn in 3D as you scroll ============ -->
+  <section class="fleet" id="fleet">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">Our Fleet</p>
+          <h2>Built for one purpose</h2>
+        </div>
+        <p class="lede" data-reveal>
+          Delivering REC90 gasoline safely and efficiently to your boat. Purpose-built fuel trucks and commercial fueling equipment,
+          designed exclusively for marine fuel delivery throughout Southwest Florida.
+        </p>
+      </header>
+
+      <div class="fleet__list">
+        {
+          fleet.map((truck, i) => (
+            <article class:list={['truck', { 'truck--flip': i % 2 === 1 }]}>
+              <div class="truck__stage">
+                <span class="truck__index numeral" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <div class="truck__img" data-3d="turn" data-3d-strength={i % 2 ? '-1' : '1'}>
+                  <Picture
+                    src={truck.image}
+                    alt={truck.alt}
+                    formats={['avif', 'webp']}
+                    widths={[480, 800, 1200, 1600]}
+                    sizes="(min-width: 60em) 58vw, 92vw"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="truck__floor" aria-hidden="true" />
+              </div>
+              <div class="truck__specs" data-reveal>
+                <h3 class="truck__name">
+                  {truck.name}
+                  <span>{truck.label}</span>
+                </h3>
+                <dl>
+                  <div>
+                    <dt>Tank capacity</dt>
+                    <dd class="numeral">{truck.capacity}<small>gal</small></dd>
+                  </div>
+                  <div>
+                    <dt>Hose reach</dt>
+                    <dd class="numeral">350<small>ft</small></dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS: cards hinge up in turn ============ -->
+  <section class="how" id="how-it-works">
+    <div class="container">
+      <header class="head head--center" data-reveal>
+        <p class="eyebrow">How It Works</p>
+        <h2>Four steps. Fuel at your dock.</h2>
+        <p class="lede">No marina lines. No fuel docks. Just reliable fuel delivered directly to your boat.</p>
+      </header>
+
+      <svg class="how__hose" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 60 C 150 10, 250 110, 400 60 S 650 10, 800 60 S 1050 110, 1200 60" data-3d="draw"></path>
+      </svg>
+
+      <ol class="how__steps" role="list" data-3d="flip">
+        {
+          steps.map((step, i) => (
+            <li class="step">
+              <div class="step__top">
+                <span class="step__num numeral">0{i + 1}</span>
+                <span class="step__icon">
+                  <Icon name={step.icon} size={22} />
+                </span>
+              </div>
+              <h3 class="step__title">{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ ON THE JOB: photo wall stands up from the table ============ -->
+  <section class="job">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">Safety &amp; Environmental Commitment</p>
+          <h2>Every delivery, done by the book</h2>
+        </div>
+        <p class="lede" data-reveal>
+          Our drivers are trained in fuel handling, spill prevention, and emergency response procedures. Every truck is equipped with spill
+          response equipment and operated in compliance with environmental and transportation regulations, to protect your vessel, your
+          property, and Florida’s waterways.
+        </p>
+      </header>
+
+      <div class="wall" data-3d="table">
+        <Photo src={dockWalk} alt="Driver walking the fuel hose down a long private dock to a boat lift" ratio="4 / 5" class="wall__a" reveal={false} sizes="(min-width: 60em) 30vw, 46vw" />
+        <Photo src={nozzle} alt="Fuel nozzle in a boat's filler" ratio="1" class="wall__b" reveal={false} sizes="(min-width: 60em) 22vw, 46vw" />
+        <Photo src={driverHose} alt="Driver pulling the hose from the wrapped tanker" ratio="4 / 3" class="wall__c" reveal={false} sizes="(min-width: 60em) 30vw, 46vw" />
+        <Photo src={boatLift} alt="Driver fuelling a boat on its lift" ratio="1" class="wall__d" reveal={false} sizes="(min-width: 60em) 22vw, 46vw" />
+        <Photo src={reel} alt="Hose reel and pump at the back of the truck" ratio="4 / 5" class="wall__e" reveal={false} sizes="(min-width: 60em) 22vw, 46vw" />
+        <Photo src={truckDoor} alt="Blackfin Fuels truck on a palm-lined street" ratio="4 / 3" class="wall__f" reveal={false} sizes="(min-width: 60em) 30vw, 46vw" />
+      </div>
+
+      <ul class="standards" role="list" data-3d="pop-group">
+        {
+          standards.map((s) => (
+            <li>
+              <span class="standards__icon">
+                <Icon name={s.icon} size={22} />
+              </span>
+              <div>
+                <h3 class="standards__title">{s.title}</h3>
+                <p>{s.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ APP: phones turn as you scroll ============ -->
+  <section class="appsec" id="app">
+    <div class="container appsec__grid">
+      <div class="appsec__copy">
+        <div data-reveal>
+          <p class="eyebrow">The Blackfin Fuels App</p>
+          <h2>Fuel to your dock. From your phone.</h2>
+          <p class="lede">
+            Compare prices, order, track your delivery and pay, all in one app. It’s the fastest way to get on our route and where you’ll
+            find our best pricing.
+          </p>
+        </div>
+        <ul class="appsec__list checklist" data-reveal>
+          <li>See nearby marina prices side by side with ours</li>
+          <li>Order in seconds: pick your gallons and your dock</li>
+          <li>Real-time route and delivery updates</li>
+          <li>Every invoice, paid securely through QuickBooks</li>
+        </ul>
+        <div class="appsec__get" data-reveal>
+          <StoreBadges placement="home-app" />
+          <Button href={app.page} variant="link">See everything the app does</Button>
+        </div>
+      </div>
+
+      <div class="appsec__phones">
+        <div class="appsec__phone appsec__phone--left" data-3d="swing" data-3d-from="left" data-float="slow">
+          <PhoneFrame src={screenOrders} alt="App screen tracking a fuel delivery from order to dock" width="min(40vw, 15rem)" />
+        </div>
+        <div class="appsec__phone appsec__phone--main" data-float>
+          <PhoneFrame src={screenHome} alt="Blackfin Fuels app home screen comparing our price with nearby marina prices" width="min(52vw, 18.5rem)" />
+        </div>
+        <p class="appsec__note">Screens show sample data.</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="refer" data-hover-tilt="5">
+        <div class="refer__copy">
+          <p class="eyebrow eyebrow--plain">Referral program</p>
+          <p class="refer__amount numeral" data-3d="pop">$25<span>+</span>$25</p>
+          <h3 class="refer__title">Give $25. Get $25.</h3>
+          <p>
+            Share your code from the app with a fellow boater. When their first confirmed delivery is complete, you each get a $25 fuel credit.
+            New Blackfin customers only.
+          </p>
+          <Button data-open-app-promo size="lg">Claim your $25</Button>
+        </div>
+        <div class="refer__phone" data-float>
+          <PhoneFrame src={screenReferral} alt="App referral screen: Give $25, Get $25 with a shareable code" width="12.5rem" crop="top" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CAPTAIN MIKE ============ -->
+  <section class="captain">
+    <div class="container captain__grid">
+      <div class="captain__media">
+        <div class="captain__photo" data-3d="swing" data-3d-from="left" data-3d-strength="0.6">
+          <Photo src={mike} alt="Captain Mike Wright, owner of Blackfin Fuels" ratio="4 / 5" position="50% 20%" reveal={false} sizes="(min-width: 60em) 32vw, 80vw" />
+        </div>
+        <div class="captain__clip" data-3d="depth" data-depth="-0.18">
+          <VideoClip src="/video/handoff.mp4" poster={handoffPoster} ratio="16 / 10" label="The Blackfin Fuels crew with a customer beside a tanker outside a waterfront home" />
+        </div>
+      </div>
+      <figure class="captain__quote" data-reveal>
+        <p class="eyebrow">Captain Mike</p>
+        <blockquote>
+          <p class="captain__lead">Built by boaters, for boaters.</p>
+          <p>
+            I started Blackfin Fuels to make fueling simple, reliable, and professional for boaters in Southwest Florida. Our focus is great
+            service, premium fuel, and using technology to make the process easier for everyone.
+          </p>
+        </blockquote>
+        <figcaption>
+          <span class="script captain__sign" aria-hidden="true">Mike Wright</span>
+          <span><strong>Mike Wright</strong> <span class="muted">· Owner, Blackfin Fuels</span></span>
+        </figcaption>
+        <Button href="/about-us/" variant="link">Meet the team</Button>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============ SERVICE AREA ============ -->
+  <section class="areas">
+    <div class="container areas__grid">
+      <div class="areas__copy" data-reveal>
+        <p class="eyebrow">Service Area</p>
+        <h2>Bradenton to Cape Coral</h2>
+        <p class="lede">Marine fuel delivery across Southwest Florida’s Gulf Coast. Scheduled routes, no marina lines.</p>
+        <Button href="/service-areas/" variant="ghost">All service areas</Button>
+      </div>
+      <ol class="areas__list" role="list" data-3d="pop-group">
+        {
+          zones.map((zone, i) => (
+            <li>
+              <a class="zone" href={zone.href}>
+                <span class="zone__num numeral">0{i + 1}</span>
+                <span class="zone__name">{zone.name}</span>
+                <span class="zone__note">{zone.note}</span>
+                <Icon name="arrow-up-right" size={18} />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ REVIEWS ============ -->
+  <section class="reviews">
+    <div class="container">
+      <header class="head head--center" data-reveal>
+        <p class="eyebrow">Testimonials</p>
+        <h2>What our customers are saying</h2>
+      </header>
+      <div class="reviews__box" data-reviews data-src={reviews.trustindexLoader}>
+        <p class="reviews__loading">Loading customer reviews…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ORDER ============ -->
+  <section class="order" id="order">
+    <Contours class="order__lines" lines={16} />
+    <div class="container order__grid">
+      <div class="order__copy" data-reveal>
+        <p class="eyebrow">Request Fuel</p>
+        <h2>Ready to get fueled up?</h2>
+        <p class="lede">Tell us where you are. We’ll handle the rest.</p>
+        <ul class="checklist">
+          <li>Rec 90 ethanol-free marine fuel only</li>
+          <li>Commercially insured and spill compliant, with COI available on request</li>
+          <li>Invoiced after delivery, so you only pay for what goes in the tank</li>
+        </ul>
+        <p class="order__call">
+          Rather talk it through? <a href={contact.phoneHref}>{contact.phoneDisplay}</a>
+        </p>
+      </div>
+      <div>
+        <OrderForm title="Book your delivery" note="Takes about a minute. No payment until after delivery." heading="h3" placement="home" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .head {
+    margin-bottom: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+
+  .head > :global(* + *),
+  .head > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .head--center {
+    text-align: center;
+  }
+
+  .head--center :global(.eyebrow) {
+    justify-content: center;
+  }
+
+  .head--center :global(.lede) {
+    margin-inline: auto;
+  }
+
+  .head--center h2 {
+    max-width: 18ch;
+    margin-inline: auto;
+  }
+
+  @media (min-width: 60em) {
+    .head--split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+      align-items: end;
+    }
+  }
+
+  @media (max-width: 59.99em) {
+    .head--split > :global(.lede) {
+      margin-top: 1.25rem;
+    }
+  }
+
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+  }
+
+  .hero :global(.hero__lines) {
+    position: absolute;
+    inset: 22% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.45;
+  }
+
+  .hero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.46rem, 0.9rem + 4.49vw, 5.88rem);
+    line-height: 0.9;
+  }
+
+  .hero__line {
+    display: block;
+  }
+
+  .hero__line--accent {
+    color: var(--accent);
+  }
+
+  .hero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .hero__row :global(.lede) {
+    color: var(--text);
+    opacity: 0.86;
+    max-width: 34em;
+  }
+
+  @media (min-width: 60em) {
+    .hero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  .hero :global(.hero__price) {
+    margin-top: 1.75rem;
+  }
+
+  .hero__stage-wrap {
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    perspective: 1600px;
+  }
+
+  .hero__stage {
+    position: relative;
+    border-radius: var(--radius-lg);
+    /* Resting pose before any scroll; motion.ts takes over once the page scrolls. */
+    transform: perspective(1600px) rotateX(22deg) scale(0.88);
+    transform-origin: 50% 0%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__stage {
+      transform: none;
+    }
+  }
+
+  .hero__stage :global(.hero__video) {
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 0 0 1px var(--line-strong);
+  }
+
+  .hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    background: rgb(9 23 36 / 0.86);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .hero__facts li {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem clamp(0.8rem, 0.4rem + 1.5vw, 1.6rem);
+  }
+
+  .hero__facts li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  .hero__facts .numeral {
+    font-size: clamp(1.5rem, 1rem + 2vw, 2.6rem);
+  }
+
+  .hero__facts small {
+    margin-left: 0.15em;
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+
+  .hero__facts li > span:last-child {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48em) {
+    .hero__facts {
+      position: absolute;
+      left: clamp(1rem, 3vw, 2.5rem);
+      bottom: clamp(1rem, 3vw, 2.5rem);
+      width: min(36rem, 62%);
+    }
+  }
+
+  @media (max-width: 47.99em) {
+    .hero__facts {
+      margin-top: 0.75rem;
+    }
+  }
+
+  /* ---------- intro ---------- */
+  .intro {
+    padding-block: clamp(3rem, 2rem + 3vw, 5rem);
+    border-block: 1px solid var(--line);
+  }
+
+  .intro__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .intro__grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      align-items: center;
+      gap: 5rem;
+    }
+  }
+
+  .intro__statement {
+    font-size: var(--step-4);
+    line-height: 1.02;
+  }
+
+  .intro__numbers {
+    display: grid;
+    margin: 0;
+  }
+
+  .intro__numbers > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .intro__numbers > div:first-child {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .intro__numbers dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .intro__numbers dd {
+    margin: 0;
+    font-size: var(--step-3);
+  }
+
+  .intro__numbers small {
+    margin-left: 0.15em;
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+
+  /* ---------- fleet ---------- */
+  .fleet {
+    padding-block: var(--section-pad);
+    background:
+      radial-gradient(70% 40% at 50% 30%, rgb(55 138 221 / 0.12), transparent 70%),
+      var(--navy-900);
+  }
+
+  .fleet__list {
+    display: grid;
+    gap: clamp(1.5rem, 0.5rem + 3vw, 3.5rem);
+  }
+
+  .truck {
+    display: grid;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .truck {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 3rem;
+    }
+    .truck--flip {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    }
+    .truck--flip .truck__stage {
+      order: 2;
+    }
+  }
+
+  .truck__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: clamp(0.5rem, 2vw, 1.5rem) 0 clamp(1rem, 2vw, 2rem);
+    perspective: 1500px;
+  }
+
+  .truck__index {
+    position: absolute;
+    top: -0.1em;
+    left: 0;
+    font-size: clamp(4.92rem, 2.25rem + 8.16vw, 10.5rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+  }
+
+  .truck--flip .truck__index {
+    left: auto;
+    right: 0;
+  }
+
+  .truck__img {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 36rem);
+    transform-style: preserve-3d;
+  }
+
+  .truck__img :global(img) {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.55));
+  }
+
+  .truck__floor {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 6%;
+    height: 18%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.28), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .truck__name {
+    font-size: var(--step-3);
+  }
+
+  .truck__name span {
+    display: block;
+    margin-top: 0.4rem;
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+  }
+
+  .truck__specs dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin: 1.25rem 0 0;
+  }
+
+  .truck__specs dl > div {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .truck__specs dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .truck__specs dd {
+    white-space: nowrap;
+    margin: 0.35rem 0 0;
+    font-size: var(--step-3);
+  }
+
+  .truck__specs small {
+    margin-left: 0.15em;
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+
+  /* ---------- how it works ---------- */
+  .how {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .how__hose {
+    display: none;
+    width: 100%;
+    height: 4.5rem;
+    margin-bottom: -1.5rem;
+    overflow: visible;
+  }
+
+  .how__hose path {
+    fill: none;
+    stroke: #2f8f4e;
+    stroke-width: 6;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  @media (min-width: 62em) {
+    .how__hose {
+      display: block;
+    }
+  }
+
+  .how__steps {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  @media (min-width: 40em) {
+    .how__steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 62em) {
+    .how__steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .step {
+    position: relative;
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .step__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+  }
+
+  .step__num {
+    font-size: var(--step-4);
+    color: var(--accent);
+  }
+
+  .step__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .step__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  .step p {
+    margin-top: 0.75rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  /* ---------- on the job ---------- */
+  .job {
+    padding-block: var(--section-pad);
+    overflow: clip;
+  }
+
+  .wall {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.6rem, 0.3rem + 1vw, 1.25rem);
+  }
+
+  .wall :global(.photo) {
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 60em) {
+    .wall {
+      grid-template-columns: 1.3fr 1fr 1.3fr 1fr;
+      align-items: start;
+    }
+    .wall :global(.wall__a) {
+      grid-column: 1;
+      grid-row: 1 / span 2;
+    }
+    .wall :global(.wall__b) {
+      grid-column: 2;
+      grid-row: 1;
+      margin-top: 3rem;
+    }
+    .wall :global(.wall__c) {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    .wall :global(.wall__e) {
+      grid-column: 4;
+      grid-row: 1 / span 2;
+      margin-top: 6rem;
+    }
+    .wall :global(.wall__d) {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .wall :global(.wall__f) {
+      grid-column: 3;
+      grid-row: 2;
+    }
+  }
+
+  .standards {
+    display: grid;
+    gap: 2rem 3rem;
+    margin: clamp(3rem, 2rem + 4vw, 6rem) 0 0;
+  }
+
+  @media (min-width: 48em) {
+    .standards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72em) {
+    .standards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .standards li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.1rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .standards__icon {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    color: var(--accent);
+    background: rgb(95 175 255 / 0.1);
+    border-radius: var(--radius-sm);
+  }
+
+  .standards__title {
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .standards p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  /* ---------- app ---------- */
+  .appsec {
+    padding-block: var(--section-pad);
+    overflow: clip;
+    background:
+      radial-gradient(60% 60% at 80% 40%, rgb(55 138 221 / 0.22), transparent 70%),
+      linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .appsec__grid {
+    display: grid;
+    gap: 3.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .appsec__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+    }
+  }
+
+  .appsec__copy > :global(* + *) {
+    margin-top: 2rem;
+  }
+
+  .appsec__copy > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  .appsec__get {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+
+  .appsec__phones {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    min-height: 30rem;
+    perspective: 1500px;
+  }
+
+  .appsec__phone--left {
+    margin-right: -4.5rem;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+  }
+
+  .appsec__phone--main {
+    position: relative;
+    z-index: 1;
+  }
+
+  .appsec__note {
+    position: absolute;
+    right: 0;
+    bottom: -2rem;
+    font-size: var(--step--2);
+    color: var(--text-faint);
+  }
+
+  .refer {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+    padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    overflow: hidden;
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.4), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (min-width: 48em) {
+    .refer {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      padding-bottom: 0;
+    }
+    .refer__copy {
+      padding-bottom: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+    }
+  }
+
+  .refer__copy > :global(* + *) {
+    margin-top: 1rem;
+  }
+
+  .refer__amount {
+    font-size: clamp(3.28rem, 1.5rem + 5.44vw, 5.6rem);
+    line-height: 0.85;
+    color: var(--white);
+  }
+
+  .refer__amount span {
+    margin-inline: 0.12em;
+    color: var(--accent);
+  }
+
+  .refer__title {
+    font-size: var(--step-3);
+  }
+
+  .refer__copy p:not(.eyebrow):not(.refer__amount) {
+    max-width: 34em;
+    color: var(--text);
+    opacity: 0.88;
+  }
+
+  .refer__phone {
+    justify-self: center;
+    margin-bottom: -4rem;
+  }
+
+  @media (min-width: 48em) {
+    .refer__phone {
+      margin-bottom: -3rem;
+    }
+  }
+
+  /* ---------- captain ---------- */
+  .captain {
+    padding-block: var(--section-pad);
+  }
+
+  .captain__grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .captain__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      gap: 5rem;
+    }
+  }
+
+  .captain__media {
+    position: relative;
+    padding-bottom: 5rem;
+    perspective: 1500px;
+  }
+
+  .captain__photo {
+    width: 78%;
+  }
+
+  .captain__photo :global(.photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+
+  .captain__clip {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 58%;
+  }
+
+  .captain__quote {
+    margin: 0;
+  }
+
+  .captain__quote > :global(* + *) {
+    margin-top: 1.5rem;
+  }
+
+  .captain__quote blockquote {
+    margin: 1.25rem 0 0;
+  }
+
+  .captain__lead {
+    font-family: var(--font-display);
+    font-size: var(--step-4);
+    text-transform: uppercase;
+    line-height: 0.95;
+    color: var(--text);
+  }
+
+  .captain__quote blockquote p + p {
+    margin-top: 1.5rem;
+    padding-left: 1.25rem;
+    font-size: var(--step-1);
+    line-height: 1.6;
+    border-left: 2px solid var(--accent);
+  }
+
+  .captain__quote figcaption {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .captain__sign {
+    font-size: clamp(2.62rem, 1.65rem + 2.72vw, 3.67rem);
+    line-height: 0.9;
+    color: var(--accent-strong);
+  }
+
+  /* ---------- areas ---------- */
+  .areas {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, var(--ink), var(--abyss));
+    border-block: 1px solid var(--line);
+  }
+
+  .areas__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .areas__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .areas__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .areas__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .areas__copy :global(.btn) {
+    margin-top: 2rem;
+  }
+
+  .areas__list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .zone {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'num name icon'
+      'num note icon';
+    align-items: center;
+    column-gap: 1rem;
+    min-height: 5.25rem;
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition:
+      border-color var(--dur-2) var(--ease-out),
+      background-color var(--dur-2) var(--ease-out);
+  }
+
+  .zone:hover {
+    background: var(--navy-600);
+    border-color: var(--accent);
+  }
+
+  .zone__num {
+    grid-area: num;
+    font-size: var(--step-2);
+    color: var(--accent);
+  }
+
+  .zone__name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    text-transform: uppercase;
+    line-height: 1.05;
+  }
+
+  .zone__note {
+    grid-area: note;
+    margin-top: 0.2rem;
+    font-size: var(--step--2);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .zone :global(.icon) {
+    grid-area: icon;
+    color: var(--text-faint);
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      color var(--dur-2) var(--ease-out);
+  }
+
+  .zone:hover :global(.icon) {
+    color: var(--accent);
+    transform: translate(3px, -3px);
+  }
+
+  /* ---------- reviews ---------- */
+  .reviews {
+    padding-block: var(--section-pad);
+  }
+
+  .reviews__box {
+    min-height: 14rem;
+    padding: clamp(1rem, 0.6rem + 2vw, 2.25rem);
+    background: var(--paper);
+    color: #0c1e2f;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .reviews__loading {
+    padding: 4rem 1rem;
+    text-align: center;
+    color: #6b7c90;
+  }
+
+  .reviews__box[data-loaded] .reviews__loading {
+    display: none;
+  }
+
+  /* ---------- order ---------- */
+  .order {
+    isolation: isolate;
+    padding-block: var(--section-pad);
+    overflow: clip;
+    background:
+      radial-gradient(70% 80% at 10% 100%, rgb(55 138 221 / 0.36), transparent 68%),
+      linear-gradient(180deg, var(--navy-900), #0a2038);
+    border-top: 1px solid var(--line);
+  }
+
+  .order :global(.order__lines) {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: -1;
+    opacity: 0.45;
+  }
+
+  .order__grid {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (min-width: 62em) {
+    .order__grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 4.5rem;
+    }
+    .order__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .order__copy > :global(* + *) {
+    margin-top: 1.3rem;
+  }
+
+  .order__copy h2 {
+    font-size: var(--step-4);
+  }
+
+  .order__copy :global(.checklist) {
+    margin-top: 2rem;
+  }
+
+  .order__call {
+    color: var(--text-muted);
+  }
+
+  .order__call a {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+</style>
+
+<script>
+  // Customer reviews: the client's Trustindex widget, loaded only when the
+  // section is about to scroll into view.
+  const box = document.querySelector<HTMLElement>('[data-reviews]');
+  if (box && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        observer.disconnect();
+        const script = document.createElement('script');
+        script.src = box.dataset.src ?? '';
+        script.async = true;
+        script.addEventListener('load', () => box.setAttribute('data-loaded', ''));
+        box.append(script);
+      },
+      { rootMargin: '700px 0px' },
+    );
+    observer.observe(box);
+  }
+</script>

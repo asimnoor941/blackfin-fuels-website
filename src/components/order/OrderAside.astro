@@ -1,0 +1,162 @@
+---
+/**
+ * The sidebar beside the order form on /free-estimate/: what happens after the
+ * form is sent, the service assurances and the phone fallback. Drawn as one
+ * gradient card with hairline-ruled numbered steps, like the home page.
+ * Static on purpose: no reveal or 3D next to the form.
+ * Copy is the live page's own wording.
+ *
+ *   <OrderAside />
+ */
+import Button from '../Button.astro';
+import { contact } from '../../data/site';
+
+const steps = [
+  { title: 'Send your request', text: 'Fill to full or an exact amount, ASAP or the day you need it, and where the boat is docked.' },
+  {
+    title: 'We confirm your day',
+    text: 'We review your request, slot you onto a route in your area and text to confirm your delivery day.',
+  },
+  {
+    title: 'Fuel at your dock',
+    text: 'We fill up at your dock, lift or marina. The invoice comes after delivery.',
+  },
+];
+
+const assurances = [
+  'Rec 90 ethanol-free marine fuel only',
+  'Commercially insured and spill compliant, with COI available on request',
+  'Invoiced after delivery, so you only pay for what goes in the tank',
+  'Serving the Gulf Coast from Bradenton to Cape Coral',
+];
+---
+
+<aside class="order-aside" aria-labelledby="order-next-title">
+  <div class="order-aside__card">
+    <p class="eyebrow eyebrow--plain">After you book</p>
+    <h3 id="order-next-title" class="order-aside__title">What happens next</h3>
+    <ol class="order-aside__steps" role="list">
+      {
+        steps.map((step, i) => (
+          <li class="order-aside__step">
+            <span class="order-aside__num numeral" aria-hidden="true">
+              0{i + 1}
+            </span>
+            <div>
+              <p class="order-aside__step-title">{step.title}</p>
+              <p class="order-aside__step-text">{step.text}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <ul class="checklist order-aside__checks" aria-label="With every delivery">
+      {assurances.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+
+  <div class="order-aside__call">
+    <p>
+      <strong>Rather talk it through?</strong> Call and we'll take your details over the phone.
+    </p>
+    <Button href={contact.phoneHref} variant="ghost" icon="phone" arrow={false} class="order-aside__phone">
+      {contact.phoneDisplay}
+    </Button>
+  </div>
+</aside>
+
+<style>
+  .order-aside {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .order-aside__card {
+    padding: clamp(1.4rem, 1rem + 1.4vw, 2.25rem);
+    background:
+      radial-gradient(90% 60% at 100% 0%, rgb(95 175 255 / 0.14), transparent 65%),
+      linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)),
+      var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .order-aside__title {
+    margin-top: 0.8rem;
+    font-size: var(--step-3);
+    line-height: 0.98;
+  }
+
+  /* Numbered rows on hairlines. */
+  .order-aside__steps {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .order-aside__step {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: start;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .order-aside__num {
+    font-size: var(--step-3);
+    line-height: 0.9;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+  }
+
+  .order-aside__step-title {
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  .order-aside__step-text {
+    margin-top: 0.3rem;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .order-aside__checks {
+    margin-top: 1.5rem;
+    font-size: var(--step--1);
+  }
+
+  .order-aside__call {
+    display: grid;
+    gap: var(--space-4);
+    padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    background: rgb(4 11 18 / 0.35);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+
+  .order-aside__call p {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .order-aside__call strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .order-aside__call :global(.order-aside__phone) {
+    width: 100%;
+    font-size: var(--step-0);
+    letter-spacing: 0.04em;
+  }
+</style>

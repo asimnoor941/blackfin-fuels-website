@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://blackfinfuels.com/sitemap-index.xml

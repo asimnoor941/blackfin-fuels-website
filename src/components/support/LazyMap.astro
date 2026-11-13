@@ -1,0 +1,210 @@
+---
+/**
+ * A Google Maps embed that costs nothing until it is wanted. Renders a styled
+ * placeholder with a "Load map" button; the iframe is only inserted when the
+ * button is pressed or the placeholder scrolls near the viewport.
+ * Without JavaScript the "Open in Google Maps" link still works.
+ *
+ *   <LazyMap src="https://www.google.com/maps?q=...&output=embed" title="Map showing ..." place="..." />
+ *
+ * src    The embed URL.
+ * title  Title attribute for the iframe (required for screen readers).
+ * place  Name shown on the placeholder.
+ */
+import Icon from '../Icon.astro';
+import Contours from '../Contours.astro';
+
+interface Props {
+  src: string;
+  title: string;
+  place?: string;
+  class?: string;
+}
+
+const { src, title, place, class: className } = Astro.props;
+const openUrl = src.replace(/[?&]output=embed/, '');
+---
+
+<div class:list={['lazy-map', 'frame', className]} data-lazy-map data-src={src} data-title={title}>
+  <div class="lazy-map__placeholder" data-lazy-map-placeholder>
+    <Contours class="lazy-map__contours" />
+    <span class="lazy-map__pin" aria-hidden="true">
+      <Icon name="map-pin" size={26} />
+    </span>
+    {place && <p class="lazy-map__place">{place}</p>}
+    <div class="lazy-map__actions">
+      <button class="lazy-map__btn" type="button" data-lazy-map-load>
+        <Icon name="compass" size={18} />
+        <span>Load map</span>
+      </button>
+      <a class="lazy-map__link" href={openUrl} target="_blank" rel="noopener noreferrer">
+        <span>Open in Google Maps</span>
+        <Icon name="arrow-up-right" size={18} />
+        <span class="visually-hidden">(opens in a new tab)</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const maps = document.querySelectorAll<HTMLElement>('[data-lazy-map]');
+
+  maps.forEach((map) => {
+    const src = map.dataset.src;
+    if (!src) return;
+    let loaded = false;
+    let observer: IntersectionObserver | undefined;
+
+    const load = (focus: boolean) => {
+      if (loaded) return;
+      loaded = true;
+      observer?.disconnect();
+
+      const frame = document.createElement('iframe');
+      frame.src = src;
+      frame.title = map.dataset.title ?? 'Map';
+      frame.className = 'lazy-map__frame';
+      frame.loading = 'lazy';
+      frame.referrerPolicy = 'no-referrer-when-downgrade';
+      frame.allowFullscreen = true;
+
+      map.querySelector('[data-lazy-map-placeholder]')?.remove();
+      map.append(frame);
+      map.classList.add('is-loaded');
+      if (focus) {
+        frame.tabIndex = -1;
+        frame.focus({ preventScroll: true });
+      }
+    };
+
+    map.querySelector('[data-lazy-map-load]')?.addEventListener('click', () => load(true));
+
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) load(false);
+        },
+        { rootMargin: '200px 0px' },
+      );
+      observer.observe(map);
+    }
+  });
+</script>
+
+<style>
+  .lazy-map {
+    aspect-ratio: 16 / 9;
+    min-height: 22rem;
+    width: 100%;
+  }
+
+  @media (max-width: 47.99em) {
+    .lazy-map {
+      aspect-ratio: auto;
+      height: min(70vh, 26rem);
+    }
+  }
+
+  .lazy-map__placeholder {
+    position: absolute;
+    inset: 0;
+    isolation: isolate;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1.1rem;
+    padding: 1.5rem;
+    text-align: center;
+    background:
+      radial-gradient(60% 70% at 50% 45%, rgb(55 138 221 / 0.2), transparent 70%),
+      linear-gradient(180deg, var(--navy-700), var(--navy-900));
+  }
+
+  .lazy-map__placeholder :global(.lazy-map__contours) {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+  }
+
+  .lazy-map__pin {
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    color: var(--accent);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: rgb(4 11 18 / 0.5);
+    box-shadow: 0 0 0 0.6rem rgb(95 175 255 / 0.07);
+  }
+
+  .lazy-map__place {
+    max-width: 18em;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 0.012em;
+  }
+
+  .lazy-map__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    margin-top: 0.4rem;
+  }
+
+  .lazy-map__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65em;
+    min-height: 3.1rem;
+    padding: 0.85em 1.6em;
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+    transition:
+      background-color var(--dur-2) var(--ease-out),
+      transform var(--dur-2) var(--ease-out);
+  }
+
+  .lazy-map__btn:hover {
+    background: var(--accent-strong);
+    transform: translateY(-1px);
+  }
+
+  .lazy-map__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 2.75rem;
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+  }
+
+  .lazy-map__link:hover {
+    color: var(--accent);
+  }
+
+  .lazy-map :global(.lazy-map__frame) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

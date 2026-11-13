@@ -1,0 +1,1130 @@
+---
+/**
+ * About Us. Same editorial language as the home page: big Anton headlines,
+ * split headers, hairline-ruled rows and dark section bands.
+ *
+ * Scroll-driven 3D (see src/scripts/motion.ts), used on four things only:
+ *   stage  the hero photo (tilted back at rest, flattens as you scroll)
+ *   swing  Captain Mike's portrait
+ *   turn   the two fleet trucks
+ *   tilt   the handoff video
+ * Everything else uses plain scroll reveals. No .grid / .frame classes are
+ * used outside those wrappers, so autoAssign3D adds nothing extra.
+ */
+import { Picture } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import type { IconName } from '../components/Icon.astro';
+import VideoClip from '../components/VideoClip.astro';
+import Contours from '../components/Contours.astro';
+import CtaBand from '../components/CtaBand.astro';
+import CrewCard from '../components/about/CrewCard.astro';
+import { ORDER_URL } from '../data/site';
+
+import crewPhoto from '../assets/photos/crew-three.jpg';
+import tankersPhoto from '../assets/photos/two-tankers-lot.jpg';
+import mike from '../assets/team/mike.jpg';
+import tyrelle from '../assets/team/tyrelle.jpg';
+import jesse from '../assets/team/jesse.jpg';
+import truckOne from '../assets/trucks/international-2800.webp';
+import truckTwo from '../assets/trucks/freightliner-2800.webp';
+import handoffPoster from '../assets/posters/handoff.jpg';
+
+const differences: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'shield-check',
+    title: 'Commercially Insured',
+    text: 'Full commercial liability coverage and spill response compliance. Certificate of Insurance available on request (required by many HOA facilities and private marinas). Not every fuel hauler can offer this.',
+  },
+  {
+    icon: 'users',
+    title: 'Professional Crew',
+    text: 'Our drivers are trained in marine fueling protocols and spill prevention. They show up on time, treat your property with respect, and handle the fill safely, every time. No surprises, no mess.',
+  },
+  {
+    icon: 'drop',
+    title: 'Rec 90: Ethanol Free',
+    text: "We only carry ethanol-free Rec 90, the fuel marine engines actually need. No ethanol blends. Better storage stability, less corrosion, fewer fuel system problems. It's the right product for the customer.",
+  },
+  {
+    icon: 'gauge',
+    title: '350 ft Hose Reach',
+    text: "Our primary tanker carries 350 feet of hose, enough to reach nearly any dock configuration without repositioning the truck. Tight canal? Seawall setback? We've got the reach.",
+  },
+];
+
+const fleet = [
+  { label: 'Truck 1', image: truckOne, alt: 'White Blackfin Fuels tanker truck with a polished steel tank and a blue fish mural on the rear' },
+  { label: 'Truck 2', image: truckTwo, alt: 'Charcoal Blackfin Fuels tanker truck with a polished steel tank and an American flag graphic' },
+];
+
+const values = [
+  {
+    title: 'Operational First',
+    text: 'We think like a logistics company, not a fuel reseller. Routing, scheduling, capacity, and reliability are the product. Fuel is what we deliver.',
+  },
+  {
+    title: 'Trust Over Transactions',
+    text: "We're not trying to be the cheapest. We're building the most dependable fuel operation in Southwest Florida, one that customers call back, not because they have to, but because it works.",
+  },
+  {
+    title: 'Marine-Focused, Not Generic',
+    text: 'Every decision we make (the fuel we carry, the hose length we spec, the route days we schedule) is optimized for boaters and waterfront properties, not repurposed from land delivery.',
+  },
+];
+
+const numbers = [
+  { value: '150+', label: 'Miles of Gulf Coast Served' },
+  { value: '4,500+', label: 'Active fuel customers' },
+  { value: 'Multiple', label: 'Delivery trucks on the road' },
+  { value: '0', label: 'Ethanol in our fuel' },
+  { value: '100%', label: 'Invoice-after-delivery billing' },
+];
+---
+
+<BaseLayout
+  title="About Us: Built for the Water"
+  description="Blackfin Fuels was built by boaters who know the Gulf Coast. Meet Captain Mike and the crew behind Southwest Florida's professional Rec 90 fuel delivery."
+  breadcrumbs={[{ name: 'About Us', href: '/about-us/' }]}
+>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <Contours class="hero__lines" lines={18} />
+    <div class="container">
+      <p class="eyebrow">Our Story</p>
+      <h1 class="hero__title">
+        <span class="hero__line">Built for</span>
+        <span class="hero__line hero__line--accent">the Water.</span>
+      </h1>
+      <div class="hero__row">
+        <p class="lede">
+          Blackfin Fuels was built by people who know the Gulf Coast, and know the frustration of taking a boat to a marina just to fill
+          up. We built the professional fuel delivery operation Southwest Florida didn't have.
+        </p>
+        <div class="cluster hero__ctas">
+          <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+          <Button href="#team" variant="ghost" size="lg" arrow={false}>Meet the team</Button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container hero__stage-wrap">
+      <div class="hero__stage" data-3d="stage">
+        <Photo
+          src={crewPhoto}
+          alt="Three Blackfin Fuels crew members standing between two company trucks on a sunny day"
+          ratio="21 / 9"
+          position="50% 82%"
+          sizes="(min-width: 80em) 77.5rem, 100vw"
+          eager
+          reveal={false}
+          class="hero__photo"
+        />
+        <ul class="hero__facts" role="list">
+          <li><span class="numeral">2,800<small>gal</small></span><span>Per tanker</span></li>
+          <li><span class="numeral">350<small>ft</small></span><span>Hose reach</span></li>
+          <li><span class="numeral">Rec 90</span><span>Ethanol free</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STORY ============ -->
+  <section class="story band" id="story">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">How We Got Here</p>
+          <h2>The Blackfin Story</h2>
+        </div>
+        <p class="story__opener" data-reveal>
+          We didn't start as a fuel company. We started as boaters with a problem, and the operational experience to solve it at
+          scale.
+        </p>
+      </header>
+
+      <div class="story__grid">
+        <div class="story__text" data-reveal>
+          <p>
+            Southwest Florida has more registered boats per capita than almost anywhere in the country. It also has some of the most
+            complex waterway access: miles of canals, shallow flats, and private docks that make marina runs impractical for regular
+            boaters.
+          </p>
+          <p>
+            Blackfin Fuels was built to serve that gap. Not as a side hustle, but as a proper logistics operation, with licensed trucks,
+            GPS routing, commercial insurance, and scheduled weekly routes that customers can plan around.
+          </p>
+          <ul class="story__marks" role="list">
+            <li>Licensed trucks</li>
+            <li>GPS routing</li>
+            <li>Commercial insurance</li>
+            <li>Scheduled weekly routes</li>
+          </ul>
+          <Button href={ORDER_URL} variant="link">Schedule your first delivery</Button>
+        </div>
+        <Photo
+          src={tankersPhoto}
+          alt="Two Blackfin Fuels tanker trucks, one white and one charcoal, parked side by side under palm trees"
+          ratio="4 / 5"
+          position="50% 45%"
+          sizes="(min-width: 60em) 36vw, 100vw"
+          class="story__photo"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEAM ============ -->
+  <section class="team band band--raised" id="team">
+    <div class="container">
+      <header class="head" data-reveal>
+        <p class="eyebrow">Who We Are</p>
+        <h2>Our Team</h2>
+      </header>
+
+      <article class="lead">
+        <div class="lead__media">
+          <div class="lead__photo" data-3d="swing" data-3d-from="left" data-3d-strength="0.6">
+            <Photo
+              src={mike}
+              alt="Captain Mike, in a white cap and sunglasses, smiling from the tower seat of a fishing boat surrounded by rods"
+              ratio="4 / 5"
+              position="50% 40%"
+              sizes="(min-width: 60em) 34vw, 90vw"
+              reveal={false}
+            />
+          </div>
+          <p class="lead__badge">
+            <span class="numeral">10,000+<small>gal</small></span>
+            <span>Rec 90 a year through his charter business</span>
+          </p>
+        </div>
+        <div class="lead__body" data-reveal>
+          <p class="eyebrow eyebrow--plain">Owner</p>
+          <h3 class="lead__name">Captain Mike</h3>
+          <p class="lead__bio">
+            Blackfin Fuels is owned by Captain Mike. Mike operates a busy offshore fishing charter business. His business uses over 10,000
+            gallons of Rec 90 fuel a year, and Mike was frustrated with the poor service and lack of options for reliable fuel delivery.
+            Blackfin Fuels was created to serve fellow boaters by offering a better fuel delivery process!
+          </p>
+        </div>
+      </article>
+
+      <ul class="crew" role="list" data-reveal-group>
+        <li data-reveal>
+          <CrewCard
+            index="02"
+            name="Tyrelle"
+            photo={tyrelle}
+            alt="Tyrelle in a grey sun hat, mirrored sunglasses and a Blackfin Fuels shirt, standing in front of mangroves"
+            position="47% 30%"
+          >
+            Tyrelle is an Army veteran with extensive experience in petroleum support and logistics, bringing precision and dedication
+            to every delivery. He ensures that Blackfin Fuels' customers receive safe, reliable, and on-time fuel service directly at
+            their docks.
+          </CrewCard>
+        </li>
+        <li data-reveal>
+          <CrewCard
+            index="03"
+            name="Jesse"
+            photo={jesse}
+            alt="Jesse in a straw hat, sunglasses and a Blackfin Fuels shirt, fueling a boat with the delivery hose beside him"
+            position="60% 26%"
+          >
+            Jesse brings hands-on marine fueling experience and a sharp attention to detail on every route. He's a familiar, dependable
+            face for customers up and down the Gulf Coast, committed to getting fuel delivered safely and on schedule.
+          </CrewCard>
+        </li>
+        <li data-reveal>
+          <CrewCard index="04" name="Jessica">
+            Jessica is the voice you hear when you call Blackfin Fuels. She is at the core of our business operations and is the
+            go-to person for new and repeat customers alike.
+          </CrewCard>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ WHAT SETS US APART ============ -->
+  <section class="apart band band--deep" id="difference">
+    <div class="container apart__grid">
+      <div class="apart__copy" data-reveal>
+        <p class="eyebrow">Why Blackfin</p>
+        <h2>What Sets Us Apart</h2>
+        <p class="lede">There are fuel haulers. And then there's an operation. Here's the difference you'll notice.</p>
+        <Button href={ORDER_URL} variant="ghost">Order Fuel</Button>
+      </div>
+      <ol class="apart__list" role="list" data-reveal-group>
+        {
+          differences.map((item, i) => (
+            <li class="apart__item" data-reveal>
+              <span class="apart__index numeral" aria-hidden="true">
+                0{i + 1}
+              </span>
+              <div class="apart__body">
+                <h3 class="apart__title">{item.title}</h3>
+                <p>{item.text}</p>
+              </div>
+              <span class="apart__icon" aria-hidden="true">
+                <Icon name={item.icon} size={22} />
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ EQUIPMENT ============ -->
+  <section class="fleet band band--glow" id="fleet">
+    <div class="container">
+      <header class="head head--split">
+        <div data-reveal>
+          <p class="eyebrow">Our Fleet</p>
+          <h2>The Equipment</h2>
+        </div>
+        <p class="lede" data-reveal>
+          Every truck is purpose-built for dockside marine fuel delivery, not adapted from a commercial hauling rig.
+        </p>
+      </header>
+
+      <div class="fleet__list">
+        {
+          fleet.map((truck, i) => (
+            <article class:list={['truck', { 'truck--flip': i % 2 === 1 }]}>
+              <div class="truck__stage">
+                <span class="truck__index numeral" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <div class="truck__img" data-3d="turn" data-3d-strength={i % 2 ? '-0.8' : '0.8'}>
+                  <Picture
+                    src={truck.image}
+                    alt={truck.alt}
+                    formats={['avif', 'webp']}
+                    widths={[480, 800, 1200, 1600]}
+                    sizes="(min-width: 60em) 58vw, 92vw"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="truck__floor" aria-hidden="true" />
+              </div>
+              <div class="truck__specs" data-reveal>
+                <h3 class="truck__name">
+                  {truck.label}
+                  <span>Rec 90 Tanker</span>
+                </h3>
+                <dl>
+                  <div>
+                    <dt>Tank Capacity</dt>
+                    <dd class="numeral">2,800<small>gal</small></dd>
+                  </div>
+                  <div>
+                    <dt>Hose Reach</dt>
+                    <dd class="numeral">350<small>ft</small></dd>
+                  </div>
+                </dl>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VALUES ============ -->
+  <section class="values band band--raised" id="values">
+    <div class="container">
+      <header class="head" data-reveal>
+        <p class="eyebrow">How We Operate</p>
+        <h2>What We Stand For</h2>
+      </header>
+      <div class="values__grid">
+        <div class="values__media">
+          <div class="values__clip" data-3d="tilt" data-3d-strength="0.5">
+            <VideoClip
+              src="/video/handoff.mp4"
+              poster={handoffPoster}
+              ratio="4 / 3"
+              label="Three Blackfin Fuels crew members talk at the back of a tanker truck parked on a residential street lined with palm trees"
+            />
+          </div>
+        </div>
+        <ol class="values__list" role="list" data-reveal-group>
+          {
+            values.map((value, i) => (
+              <li class="values__item" data-reveal>
+                <span class="values__num numeral" aria-hidden="true">
+                  0{i + 1}
+                </span>
+                <div>
+                  <h3 class="values__title">{value.title}</h3>
+                  <p>{value.text}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NUMBERS ============ -->
+  <section class="numbers band band--deep">
+    <div class="container">
+      <h2 class="visually-hidden">Blackfin Fuels in numbers</h2>
+      <dl class="numbers__row" data-reveal-group>
+        {
+          numbers.map((n) => (
+            <div data-reveal>
+              <dt>{n.label}</dt>
+              <dd class="numeral">{n.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <CtaBand
+    title="Ready to Stop<br />Driving to the Marina?"
+    text="Rec 90 delivered to your dock, lift, or slip. Request a delivery and we'll confirm your scheduled window."
+  >
+    <Button href={ORDER_URL} size="lg">Order Fuel</Button>
+    <Button href="/service-areas/" variant="ghost" size="lg">View Service Areas</Button>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  section {
+    position: relative;
+    z-index: var(--z-content);
+  }
+
+  /* ---------- shared ---------- */
+  .band {
+    padding-block: var(--section-pad);
+    background: var(--navy-900);
+  }
+
+  .band--raised {
+    background: linear-gradient(180deg, var(--navy-800), var(--navy-900));
+    border-block: 1px solid var(--line);
+  }
+
+  .band--deep {
+    background: linear-gradient(180deg, var(--ink), var(--abyss));
+    border-block: 1px solid var(--line);
+  }
+
+  .band--glow {
+    background:
+      radial-gradient(70% 40% at 50% 30%, rgb(55 138 221 / 0.12), transparent 70%),
+      var(--navy-900);
+  }
+
+  .head {
+    margin-bottom: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+
+  .head > :global(* + *),
+  .head > div > :global(* + *) {
+    margin-top: 1.1rem;
+  }
+
+  @media (min-width: 60em) {
+    .head--split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 4rem;
+      align-items: end;
+    }
+  }
+
+  @media (max-width: 59.99em) {
+    .head--split > :global(p) {
+      margin-top: 1.25rem;
+    }
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3rem, 2rem + 4vw, 6rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+  }
+
+  .hero :global(.hero__lines) {
+    position: absolute;
+    inset: 22% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.45;
+  }
+
+  .hero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.62rem, 0.9rem + 5.03vw, 6.65rem);
+    line-height: 0.9;
+  }
+
+  .hero__line {
+    display: block;
+  }
+
+  .hero__line--accent {
+    color: var(--accent);
+  }
+
+  .hero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .hero__row :global(.lede) {
+    color: var(--text);
+    opacity: 0.86;
+    max-width: 36em;
+  }
+
+  @media (min-width: 60em) {
+    .hero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  .hero__stage-wrap {
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    perspective: 1600px;
+  }
+
+  .hero__stage {
+    position: relative;
+    border-radius: var(--radius-lg);
+    /* Resting pose before any scroll; motion.ts takes over once the page scrolls. */
+    transform: perspective(1600px) rotateX(22deg) scale(0.88);
+    transform-origin: 50% 0%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__stage {
+      transform: none;
+    }
+  }
+
+  .hero__stage :global(.hero__photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 60px 120px -40px rgb(0 0 0 / 0.9),
+      0 0 0 1px var(--line-strong);
+  }
+
+  @media (max-width: 47.99em) {
+    .hero__stage :global(.hero__photo .photo__media) {
+      aspect-ratio: 4 / 3 !important;
+    }
+  }
+
+  .hero__facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    background: rgb(9 23 36 / 0.86);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .hero__facts li {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem clamp(0.7rem, 0.4rem + 1.5vw, 1.6rem);
+  }
+
+  .hero__facts li + li {
+    border-left: 1px solid var(--line);
+  }
+
+  .hero__facts .numeral {
+    font-size: clamp(1.35rem, 0.9rem + 2vw, 2.6rem);
+    white-space: nowrap;
+  }
+
+  .hero__facts small {
+    margin-left: 0.15em;
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+
+  .hero__facts li > span:last-child {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48em) {
+    .hero__facts {
+      position: absolute;
+      left: clamp(1rem, 3vw, 2.5rem);
+      bottom: clamp(1rem, 3vw, 2.5rem);
+      width: min(36rem, 62%);
+    }
+  }
+
+  @media (max-width: 47.99em) {
+    .hero__facts {
+      margin-top: 0.75rem;
+    }
+  }
+
+  /* ---------- story ---------- */
+  .story {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .story__opener {
+    font-size: var(--step-2);
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    padding-left: 1.25rem;
+    border-left: 2px solid var(--accent);
+  }
+
+  .story__grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .story__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 5rem;
+    }
+  }
+
+  .story__text {
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    line-height: 1.65;
+  }
+
+  .story__text > :global(* + *) {
+    margin-top: 1.4rem;
+  }
+
+  .story__marks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 2.25rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .story__marks li {
+    padding: 1rem 0.5rem 1rem 0;
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .story__marks li::before {
+    content: '';
+    display: inline-block;
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-right: 0.7rem;
+    vertical-align: 0.1em;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .story__text > :global(.btn) {
+    margin-top: 2rem;
+  }
+
+  .story :global(.story__photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+
+  @media (max-width: 59.99em) {
+    .story :global(.story__photo .photo__media) {
+      aspect-ratio: 4 / 3 !important;
+    }
+  }
+
+  /* ---------- team ---------- */
+  .lead {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .lead {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 5rem;
+    }
+  }
+
+  .lead__media {
+    position: relative;
+    padding-bottom: 2.5rem;
+    perspective: 1500px;
+  }
+
+  .lead__photo {
+    width: min(88%, 30rem);
+  }
+
+  .lead__photo :global(.photo) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+
+  .lead__badge {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    gap: 0.5rem;
+    width: min(62%, 17rem);
+    padding: 1.25rem 1.4rem;
+    background:
+      radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.35), transparent 60%),
+      linear-gradient(140deg, #134072, #0c2a4a 60%, #0a2038);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-2);
+  }
+
+  .lead__badge .numeral {
+    font-size: var(--step-4);
+    color: var(--white);
+  }
+
+  .lead__badge small {
+    margin-left: 0.15em;
+    font-size: 0.42em;
+    color: var(--accent);
+  }
+
+  .lead__badge > span:last-child {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .lead__body > :global(* + *) {
+    margin-top: 1.25rem;
+  }
+
+  .lead__name {
+    font-size: var(--step-5);
+    line-height: 0.92;
+  }
+
+  .lead__bio {
+    max-width: 34em;
+    padding-left: 1.25rem;
+    font-size: var(--step-1);
+    line-height: 1.65;
+    color: var(--text);
+    opacity: 0.9;
+    border-left: 2px solid var(--accent);
+  }
+
+  .crew {
+    display: grid;
+    gap: 1.25rem;
+    margin: clamp(4rem, 3rem + 4vw, 7rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 44em) {
+    .crew {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 68em) {
+    .crew {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* ---------- what sets us apart ---------- */
+  .apart__grid {
+    display: grid;
+    gap: 3rem;
+  }
+
+  @media (min-width: 62em) {
+    .apart__grid {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .apart__copy {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .apart__copy > :global(* + *) {
+    margin-top: 1.2rem;
+  }
+
+  .apart__copy h2 {
+    max-width: 10ch;
+  }
+
+  .apart__copy :global(.btn) {
+    margin-top: 2rem;
+  }
+
+  .apart__list {
+    margin: 0;
+    padding: 0;
+  }
+
+  .apart__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: clamp(1rem, 0.5rem + 2vw, 2.25rem);
+    align-items: start;
+    padding-block: clamp(1.75rem, 1.3rem + 1.6vw, 2.75rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .apart__item:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .apart__index {
+    min-width: 2ch;
+    font-size: clamp(2.3rem, 1.35rem + 2.04vw, 3.15rem);
+    line-height: 0.85;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--accent);
+  }
+
+  .apart__title {
+    font-size: var(--step-3);
+  }
+
+  .apart__body p {
+    margin-top: 0.9rem;
+    max-width: 36em;
+    color: var(--text-muted);
+  }
+
+  .apart__icon {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    color: var(--accent);
+    background: rgb(95 175 255 / 0.1);
+    border-radius: var(--radius-sm);
+  }
+
+  @media (max-width: 39.99em) {
+    .apart__item {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .apart__icon {
+      display: none;
+    }
+  }
+
+  /* ---------- fleet ---------- */
+  .fleet {
+    overflow: clip;
+  }
+
+  .fleet__list {
+    display: grid;
+    gap: clamp(3rem, 2rem + 5vw, 7rem);
+  }
+
+  .truck {
+    display: grid;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  @media (min-width: 60em) {
+    .truck {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: 4rem;
+    }
+    .truck--flip {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    }
+    .truck--flip .truck__stage {
+      order: 2;
+    }
+  }
+
+  .truck__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: clamp(1rem, 3vw, 3rem) 0 clamp(1.5rem, 3vw, 3rem);
+    perspective: 1500px;
+  }
+
+  .truck__index {
+    position: absolute;
+    top: -0.1em;
+    left: 0;
+    font-size: clamp(4.92rem, 2.25rem + 8.16vw, 10.5rem);
+    line-height: 0.8;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--line-strong);
+    pointer-events: none;
+  }
+
+  .truck--flip .truck__index {
+    left: auto;
+    right: 0;
+  }
+
+  .truck__img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    transform-style: preserve-3d;
+  }
+
+  .truck__img :global(img) {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgb(0 0 0 / 0.55));
+  }
+
+  .truck__floor {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 6%;
+    height: 18%;
+    background: radial-gradient(50% 50% at 50% 50%, rgb(95 175 255 / 0.28), transparent 70%);
+    filter: blur(6px);
+  }
+
+  .truck__name {
+    font-size: var(--step-4);
+  }
+
+  .truck__name span {
+    display: block;
+    margin-top: 0.4rem;
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+  }
+
+  .truck__specs dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin: 1.75rem 0 0;
+  }
+
+  .truck__specs dl > div {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .truck__specs dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .truck__specs dd {
+    white-space: nowrap;
+    margin: 0.35rem 0 0;
+    font-size: var(--step-4);
+  }
+
+  .truck__specs small {
+    margin-left: 0.15em;
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+
+  /* ---------- values ---------- */
+  .values__grid {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (min-width: 60em) {
+    .values__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 4.5rem;
+    }
+    .values__media {
+      position: sticky;
+      top: calc(var(--header-h) + 3rem);
+    }
+  }
+
+  .values__media {
+    perspective: 1500px;
+  }
+
+  .values__clip :global(.clip) {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 50px 100px -40px rgb(0 0 0 / 0.85),
+      0 0 0 1px var(--line-strong);
+  }
+
+  .values__list {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .values__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: clamp(1.4rem, 1rem + 1.4vw, 2rem);
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  .values__num {
+    font-size: var(--step-3);
+    color: var(--accent);
+  }
+
+  .values__title {
+    font-family: var(--font-body);
+    font-size: var(--step-1);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: -0.01em;
+  }
+
+  .values__item p {
+    margin-top: 0.6rem;
+    font-size: var(--step--1);
+    line-height: 1.65;
+    color: var(--text-muted);
+  }
+
+  /* ---------- numbers ---------- */
+  .numbers {
+    padding-block: clamp(3.5rem, 2rem + 5vw, 6.5rem);
+  }
+
+  .numbers__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .numbers__row > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem 1.5rem 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .numbers__row > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .numbers__row dt {
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .numbers__row dd {
+    margin: 0;
+    font-size: clamp(1.97rem, 1.05rem + 2.31vw, 2.97rem);
+    color: var(--text);
+  }
+
+  .numbers__row > div:nth-child(odd) dd {
+    color: var(--accent);
+  }
+
+  @media (min-width: 40em) {
+    .numbers__row {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .numbers__row > div:last-child {
+      grid-column: auto;
+    }
+  }
+
+  @media (min-width: 68em) {
+    .numbers__row {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .numbers__row > div {
+      padding: 2rem 1.5rem;
+      border-bottom: 0;
+    }
+    .numbers__row > div:first-child {
+      padding-left: 0;
+    }
+    .numbers__row > div + div {
+      border-left: 1px solid var(--line);
+    }
+  }
+</style>

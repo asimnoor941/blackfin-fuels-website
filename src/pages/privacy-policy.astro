@@ -1,0 +1,175 @@
+---
+/**
+ * /privacy-policy/
+ * Legal text reproduced verbatim from reference/original-site/content/privacy-policy.md
+ * (structure recovered from reference/original-site/pages/privacy-policy.html).
+ * Do not reword. Only the heading levels differ from the live page (h3 there, h2 here).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LegalHero from '../components/legal/LegalHero.astro';
+import LegalDoc from '../components/legal/LegalDoc.astro';
+import { contact } from '../data/site';
+
+const toc = [
+  { id: 'interpretation-and-definitions', label: 'Interpretation and Definitions' },
+  { id: 'collecting-and-using-your-personal-data', label: 'Collecting and Using Your Personal Data' },
+  { id: 'how-we-use-your-personal-data', label: 'How We Use Your Personal Data' },
+  { id: 'retention-and-transfer-of-data', label: 'Retention and Transfer of Data' },
+  { id: 'your-rights-and-data-deletion', label: 'Your Rights and Data Deletion' },
+  { id: 'data-security', label: 'Data Security' },
+  { id: 'childrens-privacy', label: 'Children’s Privacy' },
+  { id: 'external-links', label: 'External Links' },
+  { id: 'policy-updates', label: 'Policy Updates' },
+  { id: 'contact', label: 'Contact' },
+];
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="This Privacy Policy explains Blackfin Fuels' practices regarding the collection, use, and sharing of your information when you use our services."
+  promo={false}
+  breadcrumbs={[{ name: 'Privacy Policy', href: '/privacy-policy/' }]}
+>
+  <LegalHero
+    title="Privacy Policy"
+    facts={[
+      { label: 'Company', value: 'Blackfin Fuels Delivery of Punta Gorda, LLC' },
+      { label: 'Last updated', value: 'January 8, 2025' },
+      { label: 'Contact', value: contact.email, href: contact.emailHref },
+    ]}
+  />
+
+  <LegalDoc toc={toc}>
+    <p class="legal-date">Last updated: January 8, 2025</p>
+
+    <p>
+      This Privacy Policy explains our practices regarding the collection, use, and sharing of your information when you
+      use our services. It also outlines your privacy rights and how the law safeguards you.
+    </p>
+    <p>
+      We use your personal data to provide and enhance our services. By using the service, you consent to the collection
+      and use of information as described in this policy. This document was created with the assistance of the Privacy
+      Policy Generator.
+    </p>
+
+    <h2 id="interpretation-and-definitions">Interpretation and Definitions</h2>
+    <p>
+      <strong>Interpretation:</strong> Capitalized terms have specific meanings as defined here, whether used in singular
+      or plural form.
+    </p>
+    <p><strong>Definitions:</strong></p>
+    <ul>
+      <li><strong>Account:</strong> A unique profile created for you to access parts of our service.</li>
+      <li>
+        <strong>Affiliate:</strong> An entity that controls, is controlled by, or is under shared control with another,
+        typically through ownership of shares or voting rights.
+      </li>
+      <li>
+        <strong>Company:</strong> Refers to Blackfin Fuels Delivery of Punta Gorda, LLC, located at 24130 Treasure Island
+        Blvd., Punta Gorda, FL 33955.
+      </li>
+      <li>
+        <strong>Cookies:</strong> Small data files stored on your device that track browsing history and usage.
+      </li>
+      <li><strong>Country:</strong> Refers to Florida, United States.</li>
+      <li>
+        <strong>Device:</strong> Any tool capable of accessing our service, such as computers or mobile devices.
+      </li>
+      <li><strong>Personal Data:</strong> Any data related to an identifiable individual.</li>
+      <li><strong>Service:</strong> Refers to our website.</li>
+      <li><strong>Service Provider:</strong> A third party that processes data on behalf of the Company.</li>
+      <li>
+        <strong>Third-party Social Media Service:</strong> Any social media platform used to log in or create an account.
+      </li>
+      <li>
+        <strong>Usage Data:</strong> Data collected automatically, like page visit duration and device identifiers.
+      </li>
+      <li><strong>Website:</strong> Our site, accessible at <a href="/">blackfinfuels.com</a>.</li>
+      <li>
+        <strong>You:</strong> The user accessing or using our service, whether an individual or entity.
+      </li>
+    </ul>
+
+    <h2 id="collecting-and-using-your-personal-data">Collecting and Using Your Personal Data</h2>
+    <p><strong>Types of Data Collected:</strong></p>
+    <p><strong>Personal Data:</strong> We may request personal information, such as:</p>
+    <ul>
+      <li>Email address</li>
+      <li>Name</li>
+      <li>Phone number</li>
+      <li>Address (including city, state, ZIP code)</li>
+      <li>Usage data</li>
+    </ul>
+    <p>
+      <strong>Usage Data:</strong> Collected automatically during service use. This can include IP address, browser type,
+      visit time and date, and other diagnostic details.
+    </p>
+    <p>
+      <strong>Data from Social Media Services:</strong> If you log in via services like Google, Facebook, Instagram,
+      Twitter, or LinkedIn, we may collect data associated with your social media account (e.g., name, email).
+    </p>
+    <p>
+      <strong>Cookies and Tracking:</strong> We use cookies, beacons, and similar tools to analyze service use and improve
+      functionality. You can control cookies through browser settings but may experience reduced service if disabled.
+    </p>
+
+    <h2 id="how-we-use-your-personal-data">How We Use Your Personal Data</h2>
+    <ul>
+      <li><strong>To maintain and provide the service</strong></li>
+      <li><strong>To manage user accounts</strong></li>
+      <li><strong>To fulfill contracts for purchases and services</strong></li>
+      <li><strong>To communicate updates and important information</strong></li>
+      <li><strong>To share promotional offers</strong></li>
+      <li><strong>To process user requests and provide support</strong></li>
+      <li><strong>For business-related transactions, such as mergers</strong></li>
+    </ul>
+    <p>
+      <strong>Sharing Personal Information:</strong> We may share data with service providers, business affiliates, and
+      other entities when necessary, such as for business operations or with your consent.
+    </p>
+    <p>
+      Your personal information will not be shared or sold to third parties for the purpose of marketing. Mobile
+      information will not be shared, sold or conveyed to third parties for marketing/promotional purposes.
+    </p>
+
+    <h2 id="retention-and-transfer-of-data">Retention and Transfer of Data</h2>
+    <p>
+      We retain personal data only as long as needed for service purposes, legal obligations, or analysis. Your
+      information may be transferred outside your region, adhering to proper data protection practices.
+    </p>
+
+    <h2 id="your-rights-and-data-deletion">Your Rights and Data Deletion</h2>
+    <p>
+      You can update or delete personal data by accessing your account or contacting us directly. Note, certain data may
+      be retained if legally required.
+    </p>
+
+    <h2 id="data-security">Data Security</h2>
+    <p>We use industry-standard measures to protect data but cannot guarantee total security.</p>
+
+    <h2 id="childrens-privacy">Children’s Privacy</h2>
+    <p>
+      We do not collect data from individuals under 13 without parental consent. If aware of unauthorized data
+      collection, please contact us for removal.
+    </p>
+
+    <h2 id="external-links">External Links</h2>
+    <p>
+      Our site may contain links to other websites. We advise reviewing their privacy policies as we are not responsible
+      for their practices.
+    </p>
+
+    <h2 id="policy-updates">Policy Updates</h2>
+    <p>
+      Changes will be posted on this page, with the “Last updated” date reflecting revisions. Users are encouraged to
+      review this policy periodically.
+    </p>
+
+    <h2 id="contact">Contact</h2>
+    <p>
+      For questions, contact us at:<br />
+      <strong>Email:</strong>
+      <a href={contact.emailHref}>{contact.email}</a>
+    </p>
+  </LegalDoc>
+</BaseLayout>

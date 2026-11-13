@@ -1,0 +1,54 @@
+---
+/**
+ * A QR code rendered to SVG at build time (no client JavaScript).
+ * By default it points at the on-site smart link, which sends an iPhone to the
+ * App Store, an Android phone to Google Play, and anything else to /app/.
+ *
+ *   <QrCode source="promo" />
+ *   <QrCode value="https://example.com" label="Open example.com" size={160} />
+ *
+ * source  Short id appended to the smart link (?src=...) so scans can be told
+ *         apart in analytics.
+ */
+import QRCode from 'qrcode';
+import { app, site } from '../data/site';
+
+interface Props {
+  value?: string;
+  source?: string;
+  size?: number;
+  label?: string;
+  class?: string;
+}
+
+const { source = 'qr', size = 148, label = 'QR code to download the Blackfin Fuels app', class: className } = Astro.props;
+const value = Astro.props.value ?? `${site.url}${app.smartLink}?src=${encodeURIComponent(source)}`;
+
+const svg = await QRCode.toString(value, {
+  type: 'svg',
+  margin: 2,
+  errorCorrectionLevel: 'M',
+  color: { dark: '#0c1e2f', light: '#ffffff' },
+});
+---
+
+<div class:list={['qr', className]} style={`--qr:${size}px`} role="img" aria-label={label} set:html={svg} />
+
+<style>
+  .qr {
+    width: var(--qr);
+    height: var(--qr);
+    flex: none;
+    padding: 6px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow-1);
+  }
+
+  .qr :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    shape-rendering: crispEdges;
+  }
+</style>

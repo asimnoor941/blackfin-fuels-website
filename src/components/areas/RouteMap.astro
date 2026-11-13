@@ -1,0 +1,344 @@
+---
+/**
+ * Schematic route diagram of the Gulf coast service area, north at the top.
+ * It is a route diagram, not a geographic map: positions are indicative only.
+ *
+ *   <RouteMap zones={zones} />
+ *
+ * zones  Six stops, north to south. Each node links to `#zone-<id>` on the page.
+ *        `frequent` marks stops served multiple times a week (double ring).
+ *
+ * Motion (scroll only, via src/scripts/motion.ts): the card lies flat and
+ * stands up as it scrolls in (data-3d="table") and the route line draws
+ * itself across its section (data-3d="draw"). Without JavaScript or with
+ * reduced motion the card is upright and the route fully drawn.
+ */
+export interface MapZone {
+  id: string;
+  name: string;
+  schedule: string;
+  minimum: string;
+  frequent?: boolean;
+}
+
+interface Props {
+  zones: MapZone[];
+  class?: string;
+}
+
+const { zones, class: className } = Astro.props;
+
+// Hand-placed stops on a 360 x 640 canvas (Gulf on the left, land on the right).
+const points = [
+  { x: 118, y: 72 },
+  { x: 104, y: 162 },
+  { x: 128, y: 252 },
+  { x: 150, y: 345 },
+  { x: 214, y: 437 },
+  { x: 196, y: 545 },
+];
+
+const route =
+  'M118 72 C112 102 100 132 104 162 S120 222 128 252 S140 315 150 345 S190 402 214 437 S205 505 196 545';
+const coast =
+  'M96 14 C72 62 58 124 68 166 S92 246 100 286 S112 348 126 378 C144 402 182 408 194 424 C178 438 158 450 156 476 S160 532 166 560 S186 608 214 632';
+
+const stops = zones.slice(0, points.length).map((zone, i) => {
+  const [first, second] = zone.name.split(' & ');
+  return {
+    ...zone,
+    ...points[i],
+    lines: second ? [`${first} &`, second] : [first],
+    index: String(i + 1).padStart(2, '0'),
+  };
+});
+
+const grid = [80, 160, 240, 320, 400, 480, 560];
+---
+
+<figure class:list={['route-map', className]} data-3d="table" data-3d-strength="0.8">
+  <header class="route-map__head" aria-hidden="true">
+    <span>Gulf Coast route</span>
+    <span class="route-map__north">N <span class="route-map__arrow">&uarr;</span></span>
+  </header>
+
+  <svg viewBox="0 0 360 640" role="group" aria-label="Route diagram of the six delivery zones, north to south">
+    <defs>
+      <linearGradient id="route-map-land" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#9dcdff" stop-opacity="0.1"></stop>
+        <stop offset="1" stop-color="#9dcdff" stop-opacity="0"></stop>
+      </linearGradient>
+      <linearGradient id="route-map-line" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9dcdff"></stop>
+        <stop offset="1" stop-color="#378add"></stop>
+      </linearGradient>
+    </defs>
+
+    <g aria-hidden="true">
+      <!-- survey grid -->
+      <g class="route-map__grid">
+        {grid.map((y) => <line x1="0" x2="360" y1={y} y2={y} />)}
+      </g>
+
+      <!-- land -->
+      <path d={`${coast} L360 632 L360 14 Z`} fill="url(#route-map-land)"></path>
+
+      <!-- water: contour lines echoing the coast -->
+      <g class="route-map__water" fill="none">
+        <path d="M70 14 C46 62 32 124 42 166 S66 246 74 286 S86 348 100 384 S126 452 128 480 S134 532 140 560 S160 608 188 632" opacity="0.5"></path>
+        <path d="M44 14 C20 62 6 124 16 166 S40 246 48 286 S60 348 74 390 S98 456 100 484 S108 532 114 560 S134 608 162 632" opacity="0.3"></path>
+        <path d="M18 14 C-6 62 -20 124 -10 166 S14 246 22 286 S34 348 48 396 S70 460 72 488 S82 532 88 560 S108 608 136 632" opacity="0.16"></path>
+      </g>
+
+      <!-- coastline -->
+      <path class="route-map__coast" d={coast} fill="none"></path>
+
+      <text class="route-map__sea" transform="translate(30 330) rotate(-78)" text-anchor="middle">Gulf Coast</text>
+
+      <!-- route: dotted track underneath, solid line draws on scroll -->
+      <path class="route-map__track" d={route} fill="none"></path>
+      <path class="route-map__glow" d={route} fill="none"></path>
+      <path class="route-map__route" d={route} fill="none" data-3d="draw"></path>
+    </g>
+
+    {
+      stops.map((stop) => (
+        <a class="route-map__stop" href={`#zone-${stop.id}`} aria-label={`${stop.name}: ${stop.schedule}, ${stop.minimum}`}>
+          <circle class="route-map__hit" cx={stop.x} cy={stop.y} r="26" />
+          {stop.frequent && <circle class="route-map__ring" cx={stop.x} cy={stop.y} r="13.5" />}
+          <circle class="route-map__dot" cx={stop.x} cy={stop.y} r="7.5" />
+          <text class="route-map__num" x={stop.x - 22} y={stop.y + 4} text-anchor="end">
+            {stop.index}
+          </text>
+          <text class="route-map__name" x={stop.x + 24} y={stop.lines.length > 1 ? stop.y - 8 : stop.y + 2}>
+            {stop.lines.map((line, n) => (
+              <tspan x={stop.x + 24} dy={n === 0 ? 0 : 19}>
+                {line}
+              </tspan>
+            ))}
+          </text>
+          <text class="route-map__meta" x={stop.x + 24} y={stop.lines.length > 1 ? stop.y + 30 : stop.y + 21}>
+            {stop.minimum}
+          </text>
+        </a>
+      ))
+    }
+  </svg>
+
+  <figcaption class="route-map__legend">
+    <span class="route-map__key"><span class="route-map__swatch"></span>Weekly Service</span>
+    <span class="route-map__key"><span class="route-map__swatch route-map__swatch--ring"></span>Multiple Times / Week</span>
+    <span class="route-map__note">Route diagram, not to scale. Tap a stop for its details.</span>
+  </figcaption>
+</figure>
+
+<style>
+  .route-map {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    margin: 0 auto;
+    padding: clamp(1rem, 0.7rem + 1.4vw, 2rem);
+    overflow: hidden;
+    background:
+      radial-gradient(110% 60% at 0% 45%, rgb(55 138 221 / 0.2), transparent 70%),
+      radial-gradient(80% 50% at 100% 100%, rgb(31 95 158 / 0.22), transparent 70%),
+      linear-gradient(170deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01)),
+      linear-gradient(180deg, var(--navy-800), var(--abyss));
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-lg) + 6px);
+    box-shadow:
+      var(--shadow-2),
+      0 60px 120px -50px rgb(0 0 0 / 0.9);
+  }
+
+  .route-map__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.9rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--step--2);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .route-map__north {
+    display: inline-grid;
+    grid-auto-flow: column;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--accent);
+  }
+
+  .route-map__arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    letter-spacing: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+  }
+
+  .route-map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .route-map__grid line {
+    stroke: var(--blue-200);
+    stroke-opacity: 0.06;
+    stroke-width: 1;
+  }
+
+  .route-map__water path {
+    stroke: var(--blue-200);
+    stroke-width: 1;
+  }
+
+  .route-map__coast {
+    stroke: var(--blue-200);
+    stroke-opacity: 0.55;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  .route-map__sea {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    fill: var(--text-faint);
+  }
+
+  .route-map__track {
+    stroke: var(--line-strong);
+    stroke-width: 2;
+    stroke-dasharray: 2 7;
+    stroke-linecap: round;
+  }
+
+  .route-map__glow {
+    stroke: var(--accent);
+    stroke-opacity: 0.08;
+    stroke-width: 14;
+    stroke-linecap: round;
+  }
+
+  .route-map__route {
+    stroke: url(#route-map-line);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px var(--glow));
+  }
+
+  .route-map__stop {
+    text-decoration: none;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .route-map__hit {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 2;
+  }
+
+  .route-map__dot {
+    fill: var(--abyss);
+    stroke: var(--accent);
+    stroke-width: 3;
+    transition: fill var(--dur-2) var(--ease-out);
+  }
+
+  .route-map__ring {
+    fill: none;
+    stroke: var(--accent);
+    stroke-opacity: 0.6;
+    stroke-width: 1.5;
+  }
+
+  .route-map__num {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    fill: var(--text-faint);
+  }
+
+  .route-map__name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    fill: var(--text);
+    transition: fill var(--dur-2) var(--ease-out);
+  }
+
+  .route-map__meta {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    fill: var(--text-muted);
+  }
+
+  .route-map__stop:hover .route-map__dot,
+  .route-map__stop:focus-visible .route-map__dot {
+    fill: var(--accent);
+  }
+
+  .route-map__stop:hover .route-map__name,
+  .route-map__stop:focus-visible .route-map__name {
+    fill: var(--accent-strong);
+  }
+
+  .route-map__stop:focus-visible .route-map__hit {
+    stroke: var(--accent);
+  }
+
+  .route-map__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.25rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--step--2);
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .route-map__key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+
+  .route-map__swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+
+  .route-map__swatch--ring {
+    box-shadow:
+      0 0 0 3px var(--abyss),
+      0 0 0 4px rgb(95 175 255 / 0.55);
+    margin-inline: 4px;
+  }
+
+  .route-map__note {
+    flex-basis: 100%;
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+</style>

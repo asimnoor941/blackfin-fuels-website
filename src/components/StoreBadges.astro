@@ -1,0 +1,94 @@
+---
+/**
+ * Official "Download on the App Store" and "Get it on Google Play" badges.
+ *
+ *   <StoreBadges placement="home-app" />
+ *   <StoreBadges placement="promo" size="lg" adaptive />
+ *
+ * placement  Short id of where the badges sit. Sent with the click to analytics.
+ * size       sm (40px tall) | md (48px) | lg (56px)
+ * adaptive   On a phone, show only the badge for that phone's store.
+ *            (Desktop always shows both.)
+ *
+ * The artwork is Apple's and Google's own and must not be recoloured, cropped
+ * or animated. Both badges are set to the same height, as their guidelines ask.
+ */
+import appStoreBadge from '../assets/badges/app-store.svg?url';
+import googlePlayBadge from '../assets/badges/google-play.svg?url';
+import { app } from '../data/site';
+
+interface Props {
+  placement: string;
+  size?: 'sm' | 'md' | 'lg';
+  adaptive?: boolean;
+  align?: 'start' | 'center';
+  class?: string;
+}
+
+const { placement, size = 'md', adaptive = false, align = 'start', class: className } = Astro.props;
+const heights = { sm: 40, md: 48, lg: 56 } as const;
+const h = heights[size];
+// Intrinsic aspect ratios of the two official SVGs.
+const appStoreW = Math.round(h * (119.66407 / 40));
+const googlePlayW = Math.round(h * (238.96 / 70.87));
+---
+
+<div class:list={['badges', `badges--${align}`, { 'badges--adaptive': adaptive }, className]}>
+  <a
+    class="badges__link"
+    href={app.appStoreUrl}
+    target="_blank"
+    rel="noopener"
+    data-store="ios"
+    data-placement={placement}
+  >
+    <img src={appStoreBadge} width={appStoreW} height={h} alt="Download on the App Store" loading="lazy" decoding="async" />
+  </a>
+  <a
+    class="badges__link"
+    href={app.playUrl}
+    target="_blank"
+    rel="noopener"
+    data-store="android"
+    data-placement={placement}
+  >
+    <img src={googlePlayBadge} width={googlePlayW} height={h} alt="Get it on Google Play" loading="lazy" decoding="async" />
+  </a>
+</div>
+
+<style>
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .badges--center {
+    justify-content: center;
+  }
+
+  .badges__link {
+    display: inline-flex;
+    border-radius: 9px;
+    transition:
+      transform var(--dur-2) var(--ease-out),
+      filter var(--dur-2) var(--ease-out);
+  }
+
+  .badges__link:hover {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.45));
+  }
+
+  .badges__link img {
+    display: block;
+    max-width: none;
+  }
+
+  /* On phones, keep only the store that phone can use. */
+  :global(html[data-platform='ios']) .badges--adaptive [data-store='android'],
+  :global(html[data-platform='android']) .badges--adaptive [data-store='ios'] {
+    display: none;
+  }
+</style>

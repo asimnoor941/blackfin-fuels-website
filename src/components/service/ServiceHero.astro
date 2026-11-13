@@ -1,0 +1,151 @@
+---
+/**
+ * Opening block for the service pages (Fuel Delivery, Pricing, Make Payment),
+ * in the same editorial style as the home hero. Provides the page's single <h1>.
+ *
+ *   <ServiceHero eyebrow="Our Pricing" title='Pricing<span class="accent">.</span>' lede="...">
+ *     <Button href={ORDER_URL}>Order Fuel</Button>      default slot: buttons
+ *     <ul slot="meta">...</ul>                             under the buttons
+ *     <div slot="aside">...</div>                          right column (desktop)
+ *     <div slot="stage">...</div>                          full-width media below
+ *   </ServiceHero>
+ *
+ * title  HTML; wrap a phrase in <span class="accent"> for the blue line.
+ * Nothing in here moves on load. A stage element may carry data-3d="stage",
+ * whose resting pose is set in CSS so it looks the same before any scroll.
+ */
+import Contours from '../Contours.astro';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  class?: string;
+}
+
+const { eyebrow, title, lede, class: className } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+---
+
+<section class:list={['svc-hero', { 'svc-hero--aside': hasAside }, className]}>
+  <Contours class="svc-hero__lines" lines={20} />
+  <div class="container svc-hero__grid">
+    <div class="svc-hero__text">
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h1 class="svc-hero__title" set:html={title} />
+      <div class="svc-hero__row">
+        {lede && <p class="lede">{lede}</p>}
+        {
+          Astro.slots.has('default') && (
+            <div class="cluster svc-hero__ctas">
+              <slot />
+            </div>
+          )
+        }
+      </div>
+      {
+        Astro.slots.has('meta') && (
+          <div class="svc-hero__meta">
+            <slot name="meta" />
+          </div>
+        )
+      }
+    </div>
+    {
+      hasAside && (
+        <div class="svc-hero__aside">
+          <slot name="aside" />
+        </div>
+      )
+    }
+  </div>
+  {
+    Astro.slots.has('stage') && (
+      <div class="container svc-hero__stage">
+        <slot name="stage" />
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .svc-hero {
+    position: relative;
+    z-index: var(--z-content);
+    isolation: isolate;
+    margin-top: calc(var(--header-h) * -1);
+    padding: calc(var(--header-h) + clamp(1.8rem, 0.9rem + 3vw, 3.58rem)) 0 clamp(3.5rem, 2rem + 5vw, 7rem);
+    overflow: clip;
+    background:
+      radial-gradient(70% 55% at 85% 8%, rgb(55 138 221 / 0.32), transparent 62%),
+      radial-gradient(60% 50% at 0% 70%, rgb(31 95 158 / 0.24), transparent 65%),
+      linear-gradient(180deg, #0b2136 0%, var(--navy-900) 75%);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .svc-hero :global(.svc-hero__lines) {
+    position: absolute;
+    inset: 24% 0 auto 0;
+    z-index: -1;
+    height: 50%;
+    opacity: 0.42;
+  }
+
+  .svc-hero__grid {
+    display: grid;
+    gap: clamp(2.5rem, 1.5rem + 4vw, 4.5rem);
+  }
+
+  .svc-hero__title {
+    margin-top: 1.4rem;
+    font-size: clamp(2.46rem, 0.9rem + 4.49vw, 5.88rem);
+    line-height: 0.9;
+  }
+
+  .svc-hero--aside .svc-hero__title {
+    font-size: clamp(2.46rem, 1.05rem + 3.81vw, 5.18rem);
+  }
+
+  .svc-hero__title :global(.accent) {
+    display: block;
+    color: var(--accent);
+  }
+
+  .svc-hero__row {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  }
+
+  .svc-hero__row :global(.lede) {
+    max-width: 36em;
+    color: var(--text);
+    opacity: 0.86;
+  }
+
+  .svc-hero__meta {
+    margin-top: clamp(1.75rem, 1rem + 2vw, 2.5rem);
+  }
+
+  .svc-hero__stage {
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    perspective: 1600px;
+  }
+
+  @media (min-width: 60em) {
+    .svc-hero:not(.svc-hero--aside) .svc-hero__row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+
+  @media (min-width: 62em) {
+    .svc-hero--aside .svc-hero__grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      align-items: center;
+      gap: 4.5rem;
+    }
+  }
+</style>
+
