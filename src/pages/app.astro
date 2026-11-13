@@ -98,17 +98,10 @@ const referralSteps = [
   },
 ];
 
-const setupSteps = [
-  { icon: 'download', title: 'Download the app', text: 'Free on the App Store and Google Play.' },
-  { icon: 'map-pin', title: 'Add your boat and dock', text: 'Save your location and dock notes once so every order is quick.' },
-  { icon: 'drop', title: 'Order your fuel', text: "Choose your gallons and we'll add you to the next route through your area." },
-  { icon: 'card', title: 'Pay in the app', text: 'Your invoice arrives after delivery, and you can pay it right from your phone.' },
-] as const;
-
 const heroFacts = [
   { value: 'Free', label: 'iPhone & Android' },
   { value: app.referral.amount, label: 'Each, when you refer a friend' },
-  { value: '04', label: 'Steps to get set up' },
+  { value: 'REC-90', label: 'Delivered to your dock' },
 ];
 
 const jsonLd = {
@@ -202,7 +195,6 @@ const jsonLd = {
           <p class="eyebrow">Referral program</p>
           <p class="referral__amount numeral">{app.referral.amount}<span>+</span>{app.referral.amount}</p>
           <h2 id="referral-title">{app.referral.headline}</h2>
-          <p class="referral__sub">Refer a fellow boater. You both get {app.referral.amount}.</p>
           <p class="lede">Know someone who's tired of the marina fuel dock? {referralTerms}</p>
         </div>
 
@@ -224,13 +216,12 @@ const jsonLd = {
 
         <div class="referral__cta" data-reveal>
           <Button data-open-app-promo size="lg">Claim your {app.referral.amount}</Button>
-          <StoreBadges placement="app-referral" size="sm" />
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ============ DOWNLOAD: set-up steps hinge up ============ -->
+  <!-- ============ DOWNLOAD ============ -->
   <section class="band band--glow download" id="download" aria-labelledby="download-title">
     <div class="container">
       <header class="head head--split">
@@ -240,23 +231,6 @@ const jsonLd = {
         </div>
         <p class="lede" data-reveal>Make your next fuel delivery easier. Set up once, then order whenever the tank gets low.</p>
       </header>
-
-      <ol class="setup" role="list" data-3d="pop-group">
-        {
-          setupSteps.map((step, i) => (
-            <li class="setup__step">
-              <div class="setup__top">
-                <span class="setup__num numeral">0{i + 1}</span>
-                <span class="setup__icon">
-                  <Icon name={step.icon} size={22} />
-                </span>
-              </div>
-              <h3 class="setup__title">{step.title}</h3>
-              <p>{step.text}</p>
-            </li>
-          ))
-        }
-      </ol>
 
       <div class="get" data-reveal>
         <div class="get__stores">
@@ -539,76 +513,11 @@ const jsonLd = {
     }
   }
 
-  /* ----- set-up steps ----- */
-  .setup {
-    display: grid;
-    gap: 1.25rem;
-    margin: 0;
-  }
-
-  @media (min-width: 40em) {
-    .setup {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 62em) {
-    .setup {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
-
-  .setup__step {
-    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
-    background: linear-gradient(170deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.015)), var(--surface-raised);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-2);
-  }
-
-  .setup__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2.5rem;
-  }
-
-  .setup__num {
-    font-size: var(--step-4);
-    color: var(--accent);
-  }
-
-  .setup__icon {
-    display: grid;
-    place-items: center;
-    width: 3rem;
-    height: 3rem;
-    color: var(--accent);
-    border: 1px solid var(--line-strong);
-    border-radius: 50%;
-  }
-
-  .setup__title {
-    font-family: var(--font-body);
-    font-size: var(--step-1);
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: -0.01em;
-    line-height: 1.25;
-  }
-
-  .setup__step p {
-    margin-top: 0.75rem;
-    font-size: var(--step--1);
-    line-height: 1.65;
-    color: var(--text-muted);
-  }
-
   /* ----- get the app ----- */
   .get {
     display: grid;
     gap: 2rem;
-    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
     padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
     background:
       radial-gradient(80% 90% at 100% 0%, rgb(95 175 255 / 0.4), transparent 60%),
